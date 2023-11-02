@@ -9,6 +9,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 
 class MainActivity : ComponentActivity() {
@@ -26,9 +27,15 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val viewModel = viewModel<MainViewModel>()
     val uiState = viewModel.uiState
+    val address = viewModel.address
 
     Scaffold {
-        Column(Modifier.padding(it)) {
+        Column(
+            modifier = Modifier
+                .padding(it)
+                .padding(16.dp)
+        ) {
+            Text(text = "Address: $address")
             Text(text = "Balance: ${uiState.balance}")
         }
     }

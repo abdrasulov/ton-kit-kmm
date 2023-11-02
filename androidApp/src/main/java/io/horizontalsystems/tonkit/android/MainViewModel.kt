@@ -1,16 +1,20 @@
 package io.horizontalsystems.tonkit.android
 
-import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import io.horizontalsystems.tonkit.TonApiAdnl
-import kotlinx.coroutines.Dispatchers
+import io.horizontalsystems.tonkit.TonKit
 import kotlinx.coroutines.launch
 
 class MainViewModel : ViewModel() {
+    private val words = "used ugly meat glad balance divorce inner artwork hire invest already piano".split(" ")
+    private val passphrase = ""
+    private val tonKit = TonKit(words, passphrase)
+
+    val address = tonKit.receiveAddress
+
     private var balance: String? = null
 
     var uiState by mutableStateOf(
@@ -19,17 +23,6 @@ class MainViewModel : ViewModel() {
         )
     )
         private set
-
-    init {
-        val tonApiAdnl = TonApiAdnl()
-
-        viewModelScope.launch(Dispatchers.Default) {
-            tonApiAdnl.balanceUpdatedFlow.collect {
-                Log.e("AAA", "updateBalance")
-                updateBalance(tonApiAdnl.balance)
-            }
-        }
-    }
 
     private fun updateBalance(balance: String?) {
         this.balance = balance

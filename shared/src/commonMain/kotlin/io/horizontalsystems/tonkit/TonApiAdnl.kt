@@ -14,16 +14,11 @@ import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.lite.client.LiteClient
 
-class TonApiAdnl(
-//    private val words: List<String>,
-//    private val passphrase: String,
-) {
+class TonApiAdnl(addrStd: AddrStd) {
     private val httpClient = HttpClient()
 
     var balance: String? = null
     var balanceUpdatedFlow = MutableSharedFlow<Unit>()
-    val address = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
-    private val addrStd = AddrStd.parse(address)
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private val json = Json {
@@ -39,11 +34,15 @@ class TonApiAdnl(
             )
             liteClient = LiteClient(Dispatchers.Default, config)
 
-            val fullAccountState = liteClient.getAccountState(addrStd)
-            val account = fullAccountState.account.value
-            balance = if (account is AccountInfo) {
-                account.storage.balance.coins.toString()
-            } else {
+            balance = try {
+                val fullAccountState = liteClient.getAccountState(addrStd)
+                val account = fullAccountState.account.value
+                if (account is AccountInfo) {
+                    account.storage.balance.coins.toString()
+                } else {
+                    null
+                }
+            } catch (e: Exception) {
                 null
             }
             balanceUpdatedFlow.emit(Unit)
