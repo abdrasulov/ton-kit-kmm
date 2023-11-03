@@ -105,7 +105,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         is ExtOutMsgInfo -> null
     }
 
-    suspend fun getLastTransactionId(): String? {
+    suspend fun getLatestTransactionHash(): String? {
         return getFullAccountStateOrNull()?.lastTransactionId?.hash?.toHex()
     }
 }

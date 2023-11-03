@@ -4,8 +4,12 @@ class TransactionStorage {
 
     private var cache = listOf<TonTransaction>()
 
-    suspend fun getLastTransaction(): TonTransaction? {
+    suspend fun getLatestTransaction(): TonTransaction? {
         return cache.firstOrNull()
+    }
+
+    suspend fun getEarliestTransaction(): TonTransaction? {
+        return cache.lastOrNull()
     }
 
     suspend fun getTransactions(fromTransactionHash: String?, limit: Int?): List<TonTransaction> {

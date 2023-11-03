@@ -11,15 +11,37 @@ class TransactionManager(private val adnl: TonApiAdnl, private val storage: Tran
         get() = _newTransactionsFlow.asSharedFlow()
 
     suspend fun sync() {
-        val localLastTransactionHash = storage.getLastTransaction()?.hash
-        val remoteLastTransactionHash = adnl.getLastTransactionId()
+        val localLatestTransactionHash = storage.getLatestTransaction()?.hash
+        val localEarliestTransaction = storage.getEarliestTransaction()
 
-        if (remoteLastTransactionHash != localLastTransactionHash) {
-            syncUntil(localLastTransactionHash)
+        val remoteLatestTransactionHash = adnl.getLatestTransactionHash()
+        if (remoteLatestTransactionHash != localLatestTransactionHash) {
+            syncNewerThan(localLatestTransactionHash)
+        }
+
+        if (localEarliestTransaction != null) {
+            syncEarlierThan(localEarliestTransaction.hash, localEarliestTransaction.lt)
         }
     }
 
-    private suspend fun syncUntil(until: String?) {
+    private suspend fun syncEarlierThan(earlierThanHash: String, earlierThenLt: Long) {
+        val limit = 10
+        var fromTransactionHash = earlierThanHash
+        var fromTransactionLt = earlierThenLt
+        while (true) {
+            val transactions = adnl.transactions(fromTransactionHash, fromTransactionLt, limit)
+            storage.add(transactions)
+            _newTransactionsFlow.emit(transactions)
+
+            if (transactions.size < limit) break
+
+            val last = transactions.last()
+            fromTransactionHash = last.hash
+            fromTransactionLt = last.lt
+        }
+    }
+
+    private suspend fun syncNewerThan(until: String?) {
         val limit = 10
         var fromTransactionHash: String? = null
         var fromTransactionLt: Long? = null
