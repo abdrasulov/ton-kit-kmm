@@ -1,0 +1,40 @@
+CREATE TABLE TonTransaction (
+    hash TEXT NOT NULL,
+    lt INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL,
+    value TEXT
+);
+
+insert:
+INSERT INTO TonTransaction(hash, lt, timestamp, value)
+VALUES (?, ?, ?, ?);
+
+selectEarliest:
+SELECT *
+FROM TonTransaction
+ORDER BY timestamp ASC
+LIMIT 0, 1;
+
+selectLatest:
+SELECT *
+FROM TonTransaction
+ORDER BY timestamp DESC
+LIMIT 0, 1;
+
+selectByHash:
+SELECT *
+FROM TonTransaction
+WHERE hash = ?;
+
+selectAll:
+SELECT *
+FROM TonTransaction
+ORDER BY timestamp DESC
+LIMIT 0, ?;
+
+selectEarlierThan:
+SELECT *
+FROM TonTransaction
+WHERE timestamp < ?
+ORDER BY timestamp DESC
+LIMIT 0, ?;

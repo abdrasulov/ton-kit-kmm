@@ -71,31 +71,31 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         val inMsg = info.transaction.value.r1.value.inMsg.value?.value?.info
         val outMsgs = info.transaction.value.r1.value.outMsgs
 
-        val value: String?
-        val transactionType: TransactionType
-        when {
-            outMsgs.count() == 1 -> {
-                value = getValue(outMsgs.first().second.value.info)
-                transactionType = TransactionType.Outgoing
-            }
-
-            inMsg != null -> {
-                value = getValue(inMsg)
-                transactionType = TransactionType.Incoming
-            }
-
-            else -> {
-                value = null
-                transactionType = TransactionType.Outgoing
-            }
-        }
+        val value: String? = null
+//        val transactionType: TransactionType
+//        when {
+//            outMsgs.count() == 1 -> {
+//                value = getValue(outMsgs.first().second.value.info)
+//                transactionType = TransactionType.Outgoing
+//            }
+//
+//            inMsg != null -> {
+//                value = getValue(inMsg)
+//                transactionType = TransactionType.Incoming
+//            }
+//
+//            else -> {
+//                value = null
+//                transactionType = TransactionType.Outgoing
+//            }
+//        }
 
         return TonTransaction(
             hash = info.id.hash.toHex(),
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
-            value = value,
-            type = transactionType
+            value_ = value,
+//            type = transactionType
         )
     }
 
@@ -110,15 +110,15 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 }
 
-data class TonTransaction(
-    val hash: String,
-    val lt: Long,
-    val timestamp: Long,
-    val value: String?,
-    val type: TransactionType
-)
+//data class TonTransaction(
+//    val hash: String,
+//    val lt: Long,
+//    val timestamp: Long,
+//    val value: String?,
+//    val type: TransactionType
+//)
 
-enum class TransactionType {
-    Incoming, Outgoing
-}
+//enum class TransactionType {
+//    Incoming, Outgoing
+//}
 

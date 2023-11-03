@@ -1,38 +1,37 @@
 package io.horizontalsystems.tonkit
 
-class TransactionStorage {
-
-    private var cache = listOf<TonTransaction>()
+class TransactionStorage(database: Database) {
+    private val transactionQuery = database.transactionQuery
 
     suspend fun getLatestTransaction(): TonTransaction? {
-        return cache.firstOrNull()
+        return transactionQuery.selectLatest().executeAsOneOrNull()
     }
 
     suspend fun getEarliestTransaction(): TonTransaction? {
-        return cache.lastOrNull()
+        return transactionQuery.selectEarliest().executeAsOneOrNull()
     }
 
-    suspend fun getTransactions(fromTransactionHash: String?, limit: Int?): List<TonTransaction> {
-        if (cache.isEmpty()) return listOf()
-
-        val fromIndex = when (fromTransactionHash) {
-            null -> 0
-            else -> cache.indexOfFirst { it.hash == fromTransactionHash }
-        }
-
-        if (fromIndex == -1) return listOf()
-
-        val toIndex = if (limit == null) {
-            cache.size
+    suspend fun getTransactions(fromTransactionHash: String?, limit: Long): List<TonTransaction> {
+        if (fromTransactionHash == null) {
+            return transactionQuery.selectAll(limit).executeAsList()
         } else {
-            fromIndex + limit
+            val fromTransaction =
+                transactionQuery.selectByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
+            return transactionQuery.selectEarlierThan(fromTransaction.timestamp, limit).executeAsList()
         }
-
-        return cache.subList(fromIndex, toIndex)
     }
 
     fun add(transactions: List<TonTransaction>) {
-        cache = (cache + transactions).sortedByDescending { it.timestamp }
+        transactionQuery.transaction {
+            transactions.forEach { tonTransaction ->
+                transactionQuery.insert(
+                    hash = tonTransaction.hash,
+                    lt = tonTransaction.lt,
+                    timestamp = tonTransaction.timestamp,
+                    value_ = tonTransaction.value_
+                )
+            }
+        }
     }
 
 }

@@ -1,22 +1,24 @@
 package io.horizontalsystems.tonkit.android
 
+import android.app.Application
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
-import androidx.lifecycle.ViewModel
+import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.horizontalsystems.tonkit.DriverFactory
 import io.horizontalsystems.tonkit.TonKitFactory
 import io.horizontalsystems.tonkit.TonTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 
-class MainViewModel : ViewModel() {
+class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val words = "used ugly meat glad balance divorce inner artwork hire invest already piano".split(" ")
     private val passphrase = ""
     private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
 
 //    private val tonKit = TonKitFactory.create(words, passphrase)
-    private val tonKit = TonKitFactory.createWatch(watchAddress)
+    private val tonKit = TonKitFactory(DriverFactory(getApplication())).createWatch(watchAddress)
 
     val address = tonKit.receiveAddress
 
@@ -42,7 +44,7 @@ class MainViewModel : ViewModel() {
 
         viewModelScope.launch(Dispatchers.IO) {
             tonKit.newTransactionsFlow.collect {
-                transactionList = tonKit.transactions(null, null)
+                transactionList = tonKit.transactions(null, 10)
             }
         }
     }

@@ -4,7 +4,10 @@ import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 
-class TransactionManager(private val adnl: TonApiAdnl, private val storage: TransactionStorage) {
+class TransactionManager(
+    private val adnl: TonApiAdnl,
+    private val storage: TransactionStorage
+) {
 
     private val _newTransactionsFlow = MutableSharedFlow<List<TonTransaction>>()
     val newTransactionsFlow: Flow<List<TonTransaction>>
@@ -62,7 +65,7 @@ class TransactionManager(private val adnl: TonApiAdnl, private val storage: Tran
         }
     }
 
-    suspend fun transactions(fromTransactionHash: String?, limit: Int?): List<TonTransaction> {
+    suspend fun transactions(fromTransactionHash: String?, limit: Long): List<TonTransaction> {
         return storage.getTransactions(fromTransactionHash, limit)
     }
 

@@ -66,7 +66,7 @@ android {
 
 sqldelight {
     databases {
-        create("Database") {
+        create("KitDatabase") {
             packageName.set("io.horizontalsystems.tonkit")
         }
     }

@@ -14,7 +14,7 @@ import org.ton.mnemonic.Mnemonic
 class TonKit(
     private val transactionManager: TransactionManager,
     private val balanceManager: BalanceManager,
-    val receiveAddress: String,
+    val receiveAddress: String
 ) {
     val newTransactionsFlow by transactionManager::newTransactionsFlow
     val balanceFlow by balanceManager::balanceFlow
@@ -35,12 +35,12 @@ class TonKit(
         coroutineScope.cancel()
     }
 
-    suspend fun transactions(fromTransactionHash: String?, limit: Int?): List<TonTransaction> {
+    suspend fun transactions(fromTransactionHash: String?, limit: Long): List<TonTransaction> {
         return transactionManager.transactions(fromTransactionHash, limit)
     }
 }
 
-object TonKitFactory {
+class TonKitFactory(private val dbDriverFactory: DriverFactory) {
     fun create(words: List<String>, passphrase: String): TonKit {
         return create(Mnemonic.toSeed(words, passphrase))
     }
@@ -59,7 +59,8 @@ object TonKitFactory {
 
         checkNotNull(adnl)
 
-        val transactionManager = TransactionManager(adnl, TransactionStorage())
+        val database = Database(dbDriverFactory)
+        val transactionManager = TransactionManager(adnl, TransactionStorage(database))
         val balanceManager = BalanceManager(adnl)
 
         return TonKit(transactionManager, balanceManager, receiveAddress)
@@ -70,7 +71,8 @@ object TonKitFactory {
         val receiveAddress = MsgAddressInt.toString(addrStd, bounceable = false)
         val adnl = TonApiAdnl(addrStd)
 
-        val transactionManager = TransactionManager(adnl, TransactionStorage())
+        val database = Database(dbDriverFactory)
+        val transactionManager = TransactionManager(adnl, TransactionStorage(database))
         val balanceManager = BalanceManager(adnl)
 
         return TonKit(transactionManager, balanceManager, receiveAddress)
