@@ -1,6 +1,8 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
+    alias(libs.plugins.sqlDelight)
+    kotlin("plugin.serialization") version "1.9.10"
 }
 
 @OptIn(org.jetbrains.kotlin.gradle.ExperimentalKotlinGradlePluginApi::class)
@@ -37,11 +39,13 @@ kotlin {
         val androidMain by getting {
             dependencies {
                 implementation(libs.ktor.client.okhttp)
+                implementation(libs.sqldelight.android.driver)
             }
         }
         val iosMain by getting {
             dependencies {
                 implementation(libs.ktor.client.darwin)
+                implementation(libs.sqldelight.native.driver)
             }
         }
         val commonTest by getting {
@@ -57,5 +61,13 @@ android {
     compileSdk = 34
     defaultConfig {
         minSdk = 26
+    }
+}
+
+sqldelight {
+    databases {
+        create("Database") {
+            packageName.set("io.horizontalsystems.tonkit")
+        }
     }
 }
