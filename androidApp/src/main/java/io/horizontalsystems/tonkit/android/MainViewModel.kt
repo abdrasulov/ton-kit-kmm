@@ -13,7 +13,10 @@ import kotlinx.coroutines.launch
 class MainViewModel : ViewModel() {
     private val words = "used ugly meat glad balance divorce inner artwork hire invest already piano".split(" ")
     private val passphrase = ""
-    private val tonKit = TonKitFactory.create(words, passphrase)
+    private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
+
+//    private val tonKit = TonKitFactory.create(words, passphrase)
+    private val tonKit = TonKitFactory.createWatch(watchAddress)
 
     val address = tonKit.receiveAddress
 

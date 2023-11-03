@@ -42,12 +42,14 @@ class TonKit(
 
 object TonKitFactory {
     fun create(words: List<String>, passphrase: String): TonKit {
-        val seed = Mnemonic.toSeed(words, passphrase)
+        return create(Mnemonic.toSeed(words, passphrase))
+    }
+
+    fun create(seed: ByteArray): TonKit {
         val privateKey = PrivateKeyEd25519(seed)
         val publicKey = privateKey.publicKey()
         val wallet = WalletV4R2Contract(0, publicKey)
-//        val address = wallet.address
-        val address: MsgAddressInt = AddrStd.parse("UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM")
+        val address = wallet.address
         val receiveAddress = MsgAddressInt.toString(address, bounceable = false)
 
         val adnl = when (address) {
@@ -56,6 +58,17 @@ object TonKitFactory {
         }
 
         checkNotNull(adnl)
+
+        val transactionManager = TransactionManager(adnl, TransactionStorage())
+        val balanceManager = BalanceManager(adnl)
+
+        return TonKit(transactionManager, balanceManager, receiveAddress)
+    }
+
+    fun createWatch(address: String): TonKit {
+        val addrStd = AddrStd.parse(address)
+        val receiveAddress = MsgAddressInt.toString(addrStd, bounceable = false)
+        val adnl = TonApiAdnl(addrStd)
 
         val transactionManager = TransactionManager(adnl, TransactionStorage())
         val balanceManager = BalanceManager(adnl)
