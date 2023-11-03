@@ -16,12 +16,16 @@ class TonKit(
     private val balanceManager: BalanceManager,
     val receiveAddress: String,
 ) {
-    var balance = ""
     val newTransactionsFlow by transactionManager::newTransactionsFlow
+    val balanceFlow by balanceManager::balanceFlow
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
     fun start() {
+        coroutineScope.launch {
+            balanceManager.sync()
+        }
+
         coroutineScope.launch {
             transactionManager.sync()
         }

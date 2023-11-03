@@ -32,9 +32,9 @@ class MainViewModel : ViewModel() {
     init {
         tonKit.start()
         viewModelScope.launch {
-//            tonKit.balanceFlow.collect {
-//                updateBalance(it)
-//            }
+            tonKit.balanceFlow.collect {
+                updateBalance(it)
+            }
         }
 
         viewModelScope.launch(Dispatchers.IO) {
