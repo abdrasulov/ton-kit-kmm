@@ -43,7 +43,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         val fullAccountState = getFullAccountStateOrNull() ?: return null
         val account = fullAccountState.account.value
         return if (account is AccountInfo) {
-            account.storage.balance.coins.toString()
+            account.storage.balance.coins.amount.value.toString(10)
         } else {
             null
         }
