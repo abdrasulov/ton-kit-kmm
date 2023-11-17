@@ -3,35 +3,70 @@ package io.horizontalsystems.tonkit
 class TransactionStorage(database: Database) {
     private val transactionQuery = database.transactionQuery
 
-    suspend fun getLatestTransaction(): TonTransaction? {
-        return transactionQuery.selectLatest().executeAsOneOrNull()
+    fun getLatestTransaction(): TonTransaction? {
+        return transactionQuery.getLatest().executeAsOneOrNull()
     }
 
-    suspend fun getEarliestTransaction(): TonTransaction? {
-        return transactionQuery.selectEarliest().executeAsOneOrNull()
+    fun getEarliestTransaction(): TonTransaction? {
+        return transactionQuery.getEarliest().executeAsOneOrNull()
     }
 
-    suspend fun getTransactions(fromTransactionHash: String?, limit: Long): List<TonTransaction> {
+    fun getTransactions(
+        fromTransactionHash: String?,
+        type: TransactionType?,
+        limit: Long,
+    ) = when (type) {
+        null -> getTransactions(fromTransactionHash, limit)
+        else -> getTransactionsByType(fromTransactionHash, type, limit)
+    }
+
+    private fun getTransactions(
+        fromTransactionHash: String?,
+        limit: Long,
+    ): List<TonTransaction> {
         if (fromTransactionHash == null) {
-            return transactionQuery.selectAll(limit).executeAsList()
+            return transactionQuery.getAll(limit).executeAsList()
         } else {
-            val fromTransaction =
-                transactionQuery.selectByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
-            return transactionQuery.selectEarlierThan(fromTransaction.timestamp, limit).executeAsList()
+            val fromTransaction = transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
+            return transactionQuery.selectEarlierThan(
+                fromTransaction.timestamp,
+                fromTransaction.lt,
+                limit
+            ).executeAsList()
+        }
+    }
+
+    private fun getTransactionsByType(
+        fromTransactionHash: String?,
+        type: TransactionType,
+        limit: Long,
+    ): List<TonTransaction> {
+        if (fromTransactionHash == null) {
+            return transactionQuery.getAllByType(type = type.name, limit = limit).executeAsList()
+        } else {
+            val fromTransaction = transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
+            return transactionQuery.selectEarlierThanByType(
+                timestamp = fromTransaction.timestamp,
+                lt = fromTransaction.lt,
+                type = type.name,
+                limit = limit
+            ).executeAsList()
         }
     }
 
     fun add(transactions: List<TonTransaction>) {
         transactionQuery.transaction {
-            transactions.forEach { tonTransaction ->
+            transactions.forEach { transaction ->
                 transactionQuery.insert(
-                    hash = tonTransaction.hash,
-                    lt = tonTransaction.lt,
-                    timestamp = tonTransaction.timestamp,
-                    value_ = tonTransaction.value_
+                    transaction.hash,
+                    transaction.lt,
+                    transaction.timestamp,
+                    transaction.value_,
+                    transaction.type,
+                    transaction.src,
+                    transaction.dest,
                 )
             }
         }
     }
-
 }

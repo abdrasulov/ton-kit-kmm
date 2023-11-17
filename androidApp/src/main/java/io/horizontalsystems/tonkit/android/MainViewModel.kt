@@ -7,31 +7,36 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
 import io.horizontalsystems.tonkit.DriverFactory
+import io.horizontalsystems.tonkit.SyncState
 import io.horizontalsystems.tonkit.TonKitFactory
 import io.horizontalsystems.tonkit.TonTransaction
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val words = "used ugly meat glad balance divorce inner artwork hire invest already piano".split(" ")
     private val passphrase = ""
     private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
 
-//    private val tonKit = TonKitFactory.create(words, passphrase)
+    //    private val tonKit = TonKitFactory().create(words, passphrase, application)
     private val tonKit = TonKitFactory(DriverFactory(getApplication())).createWatch(watchAddress)
 
     val address = tonKit.receiveAddress
 
     private var balance: String? = null
+    private var syncState = tonKit.balanceSyncStateFlow.value
+    private var txSyncState = tonKit.transactionsSyncStateFlow.value
+    private var transactionList: List<TonTransaction>? = null
 
     var uiState by mutableStateOf(
         MainUiState(
-            balance = balance
+            balance = balance,
+            syncState = syncState,
+            txSyncState = txSyncState,
+            transactionList = transactionList
         )
     )
-        private set
-
-    var transactionList: List<TonTransaction>? by mutableStateOf(null)
         private set
 
     init {
@@ -41,12 +46,48 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
                 updateBalance(it)
             }
         }
+        viewModelScope.launch {
+            tonKit.balanceSyncStateFlow.collect {
+                updateSyncState(it)
+            }
+        }
+        viewModelScope.launch {
+            tonKit.transactionsSyncStateFlow.collect {
+                updateTxSyncState(it)
+            }
+        }
+
+        loadNextTransactionsPage()
 
         viewModelScope.launch(Dispatchers.IO) {
             tonKit.newTransactionsFlow.collect {
-                transactionList = tonKit.transactions(null, 10)
+                transactionList = null
+                loadNextTransactionsPage()
             }
         }
+    }
+
+    fun loadNextTransactionsPage() {
+        viewModelScope.launch(Dispatchers.IO) {
+            var list = transactionList ?: listOf()
+            list += tonKit.transactions(transactionList?.lastOrNull()?.hash, null, 10)
+
+            transactionList = list
+
+            emitState()
+        }
+    }
+
+    private fun updateSyncState(syncState: SyncState) {
+        this.syncState = syncState
+
+        emitState()
+    }
+
+    private fun updateTxSyncState(syncState: SyncState) {
+        txSyncState = syncState
+
+        emitState()
     }
 
     override fun onCleared() {
@@ -62,12 +103,56 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private fun emitState() {
         viewModelScope.launch {
             uiState = MainUiState(
-                balance = balance
+                balance = balance,
+                syncState = syncState,
+                txSyncState = txSyncState,
+                transactionList = transactionList
             )
+        }
+    }
+
+    private var sendDest: String? = null
+    private var sendAmount: BigDecimal? = null
+
+    fun setAmount(amount: String) {
+        sendAmount = amount.toBigDecimal()
+    }
+
+    fun setDest(dest: String) {
+        sendDest = dest
+    }
+
+    var sendResult by mutableStateOf("")
+        private set
+
+    fun send() {
+        viewModelScope.launch(Dispatchers.Default) {
+            sendResult = ""
+            sendResult = try {
+                val sendDest = sendDest
+                val sendAmount = sendAmount
+                checkNotNull(sendDest)
+                checkNotNull(sendAmount)
+
+                tonKit.send(sendDest, sendAmount.toString())
+
+                "Send success"
+            } catch (t: Throwable) {
+                "Send error: $t"
+            }
         }
     }
 }
 
 data class MainUiState(
     val balance: String?,
+    val syncState: SyncState,
+    val txSyncState: SyncState,
+    val transactionList: List<TonTransaction>?,
 )
+
+fun SyncState.toStr() = when (this) {
+    is SyncState.NotSynced -> "NotSynced ${error.javaClass.simpleName} - message: ${error.message}"
+    is SyncState.Synced -> "Synced"
+    is SyncState.Syncing -> "Syncing"
+}

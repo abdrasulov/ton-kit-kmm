@@ -3,6 +3,7 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
+import kotlinx.coroutines.flow.flow
 
 class TransactionManager(
     private val adnl: TonApiAdnl,
@@ -13,17 +14,24 @@ class TransactionManager(
     val newTransactionsFlow: Flow<List<TonTransaction>>
         get() = _newTransactionsFlow.asSharedFlow()
 
-    suspend fun sync() {
-        val localLatestTransactionHash = storage.getLatestTransaction()?.hash
-        val localEarliestTransaction = storage.getEarliestTransaction()
+    suspend fun sync() = flow {
+        emit(SyncState.Syncing())
 
-        val remoteLatestTransactionHash = adnl.getLatestTransactionHash()
-        if (remoteLatestTransactionHash != localLatestTransactionHash) {
-            syncNewerThan(localLatestTransactionHash)
-        }
+        try {
+            val localLatestTransactionHash = storage.getLatestTransaction()?.hash
+            val localEarliestTransaction = storage.getEarliestTransaction()
 
-        if (localEarliestTransaction != null) {
-            syncEarlierThan(localEarliestTransaction.hash, localEarliestTransaction.lt)
+            val remoteLatestTransactionHash = adnl.getLatestTransactionHash()
+            if (remoteLatestTransactionHash != localLatestTransactionHash) {
+                syncNewerThan(localLatestTransactionHash)
+            }
+
+            if (localEarliestTransaction != null) {
+                syncEarlierThan(localEarliestTransaction.hash, localEarliestTransaction.lt)
+            }
+            emit(SyncState.Synced())
+        } catch (t: Throwable) {
+            emit(SyncState.NotSynced(t))
         }
     }
 
@@ -34,7 +42,9 @@ class TransactionManager(
         while (true) {
             val transactions = adnl.transactions(fromTransactionHash, fromTransactionLt, limit)
             storage.add(transactions)
-            _newTransactionsFlow.emit(transactions)
+            if (transactions.isNotEmpty()) {
+                _newTransactionsFlow.emit(transactions)
+            }
 
             if (transactions.size < limit) break
 
@@ -55,7 +65,9 @@ class TransactionManager(
                 else -> transactions.subList(0, transactions.indexOfFirst { it.hash == until })
             }
             storage.add(newTransactions)
-            _newTransactionsFlow.emit(newTransactions)
+            if (transactions.isNotEmpty()) {
+                _newTransactionsFlow.emit(transactions)
+            }
 
             if (newTransactions.size < limit) break
 
@@ -65,9 +77,8 @@ class TransactionManager(
         }
     }
 
-    suspend fun transactions(fromTransactionHash: String?, limit: Long): List<TonTransaction> {
-        return storage.getTransactions(fromTransactionHash, limit)
+    suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {
+        return storage.getTransactions(fromTransactionHash, type, limit)
     }
 
 }
-

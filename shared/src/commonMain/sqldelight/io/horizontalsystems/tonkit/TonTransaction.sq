@@ -1,13 +1,18 @@
+import io.horizontalsystems.tonkit.TransactionType;
+
 CREATE TABLE TonTransaction (
-    hash TEXT NOT NULL,
+    hash TEXT NOT NULL PRIMARY KEY NOT NULL,
     lt INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
-    value TEXT
+    value TEXT,
+    type TEXT NOT NULL,
+    src TEXT,
+    dest TEXT
 );
 
 insert:
-INSERT INTO TonTransaction(hash, lt, timestamp, value)
-VALUES (?, ?, ?, ?);
+INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, value, type, src, dest)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 selectEarliest:
 SELECT *
@@ -32,9 +37,23 @@ FROM TonTransaction
 ORDER BY timestamp DESC
 LIMIT 0, ?;
 
+getLatest:
+SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, 1;
+
+getEarliest:
+SELECT * FROM TonTransaction ORDER BY timestamp ASC, lt ASC LIMIT 0, 1;
+
+getAll:
+SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, :limit;
+
+getAllByType:
+SELECT * FROM TonTransaction WHERE type = :type ORDER BY timestamp DESC, lt DESC LIMIT 0, :limit;
+
+getByHash:
+SELECT * FROM TonTransaction WHERE hash = :hash;
+
 selectEarlierThan:
-SELECT *
-FROM TonTransaction
-WHERE timestamp < ?
-ORDER BY timestamp DESC
-LIMIT 0, ?;
+SELECT * FROM TonTransaction WHERE timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
+
+selectEarlierThanByType:
+SELECT * FROM TonTransaction WHERE type = :type AND timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
