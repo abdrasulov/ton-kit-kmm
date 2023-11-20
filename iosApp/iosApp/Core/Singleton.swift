@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import shared
+import TonKitKmm
 
 struct Singleton {
     static let instance = Singleton()

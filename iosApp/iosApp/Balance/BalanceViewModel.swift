@@ -1,6 +1,6 @@
 import Combine
 import Foundation
-import shared
+import TonKitKmm
 
 class BalanceViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
@@ -39,9 +39,9 @@ class BalanceViewModel: ObservableObject {
 
     private static func syncState(kitSyncState: AnyObject) -> String {
         switch kitSyncState {
-        case is shared.SyncState.Syncing: return "Syncing"
-        case is shared.SyncState.Synced: return "Synced"
-        case is shared.SyncState.NotSynced: return "Not Synced"
+        case is TonKitKmm.SyncState.Syncing: return "Syncing"
+        case is TonKitKmm.SyncState.Synced: return "Synced"
+        case is TonKitKmm.SyncState.NotSynced: return "Not Synced"
         default: return "n/a"
         }
     }

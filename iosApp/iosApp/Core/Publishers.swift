@@ -1,10 +1,10 @@
 import Combine
-import shared
+import TonKitKmm
 
 typealias OnEach<Output> = (Output) -> Void
 typealias OnCompletion<Failure> = (Failure?) -> Void
 
-typealias OnCollect<Output, Failure> = (@escaping OnEach<Output>, @escaping OnCompletion<Failure>) -> shared.Cancellable
+typealias OnCollect<Output, Failure> = (@escaping OnEach<Output>, @escaping OnCompletion<Failure>) -> TonKitKmm.Cancellable
 
 /**
  Creates a `Publisher` that collects output from a flow wrapper function emitting values from an underlying
@@ -17,7 +17,7 @@ func collect<Output, Failure>(_ onCollect: @escaping OnCollect<Output, Failure>)
 class SharedCancellableSubscription: Subscription {
     private var isCancelled: Bool = false
 
-    var cancellable: shared.Cancellable? {
+    var cancellable: TonKitKmm.Cancellable? {
         didSet {
             if isCancelled {
                 cancellable?.cancel()
