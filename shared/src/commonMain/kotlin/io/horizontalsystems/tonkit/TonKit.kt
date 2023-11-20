@@ -3,7 +3,6 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 
 class TonKit(
     private val transactionManager: TransactionManager,
@@ -14,9 +13,15 @@ class TonKit(
 ) {
     val newTransactionsFlow by transactionManager::newTransactionsFlow
     val balanceFlow by balanceManager::balanceFlow
-
     val balanceSyncStateFlow by syncer::balanceSyncStateFlow
     val transactionsSyncStateFlow by syncer::transactionsSyncStateFlow
+
+    val balance: String?
+        get() = balanceFlow.value
+    val balanceSyncState: SyncState
+        get() = balanceSyncStateFlow.value
+    val transactionsSyncState: SyncState
+        get() = transactionsSyncStateFlow.value
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 

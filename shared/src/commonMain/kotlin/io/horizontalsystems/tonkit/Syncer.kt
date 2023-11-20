@@ -5,6 +5,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 import kotlin.time.Duration.Companion.seconds
@@ -16,11 +17,11 @@ class Syncer(
 ) {
     private val _balanceSyncStateFlow = MutableStateFlow<SyncState>(SyncState.NotSynced(SyncError.NotStarted()))
     val balanceSyncStateFlow: StateFlow<SyncState>
-        get() = _balanceSyncStateFlow
+        get() = _balanceSyncStateFlow.asStateFlow()
 
     private val _transactionsSyncStateFlow = MutableStateFlow<SyncState>(SyncState.NotSynced(SyncError.NotStarted()))
     val transactionsSyncStateFlow: StateFlow<SyncState>
-        get() = _transactionsSyncStateFlow
+        get() = _transactionsSyncStateFlow.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
