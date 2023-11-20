@@ -2,13 +2,12 @@ package io.horizontalsystems.tonkit
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.ObsoleteCoroutinesApi
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
-import kotlin.jvm.Synchronized
+import kotlin.time.Duration.Companion.seconds
 
 class Syncer(
     private val transactionManager: TransactionManager,
@@ -25,23 +24,20 @@ class Syncer(
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
 
-    @OptIn(ObsoleteCoroutinesApi::class)
     fun start() {
-//        coroutineScope.launch {
-//            // TON generates a new block on each shardchain and the masterchain approximately every 5 seconds
-//            ticker(5 * 1000, 0).receiveAsFlow().collect {
-//                sync()
-//            }
-//        }
+        coroutineScope.launch {
+            // TON generates a new block on each shardchain and the masterchain approximately every 5 seconds
+            tickerFlow(5.seconds).collect {
+                sync()
+            }
+        }
 //        connectionManager.listener = object: ConnectionManager.Listener {
 //            override fun onConnectionChange() {
 //                sync()
 //            }
 //        }
-        sync()
     }
 
-    @Synchronized
     private fun sync() {
 //        if (!connectionManager.isConnected) {
         if (false) {
@@ -56,13 +52,17 @@ class Syncer(
         } else {
             coroutineScope.launch {
                 balanceManager.sync().collect { syncState ->
-                    _balanceSyncStateFlow.update { syncState }
+//                    if (syncState !is SyncState.Syncing || _balanceSyncStateFlow.value !is SyncState.Synced) {
+                        _balanceSyncStateFlow.update { syncState }
+//                    }
                 }
             }
 
             coroutineScope.launch {
                 transactionManager.sync().collect { syncState ->
-                    _transactionsSyncStateFlow.update { syncState }
+//                    if (syncState !is SyncState.Syncing || _transactionsSyncStateFlow.value !is SyncState.Synced) {
+                        _transactionsSyncStateFlow.update { syncState }
+//                    }
                 }
             }
         }
