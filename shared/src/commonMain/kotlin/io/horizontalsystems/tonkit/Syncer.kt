@@ -52,17 +52,21 @@ class Syncer(
         } else {
             coroutineScope.launch {
                 balanceManager.sync().collect { syncState ->
-//                    if (syncState !is SyncState.Syncing || _balanceSyncStateFlow.value !is SyncState.Synced) {
+                    if (_balanceSyncStateFlow.value !is SyncState.Synced) {
                         _balanceSyncStateFlow.update { syncState }
-//                    }
+                    } else if (syncState is SyncState.NotSynced) {
+                        _balanceSyncStateFlow.update { syncState }
+                    }
                 }
             }
 
             coroutineScope.launch {
                 transactionManager.sync().collect { syncState ->
-//                    if (syncState !is SyncState.Syncing || _transactionsSyncStateFlow.value !is SyncState.Synced) {
+                    if (_transactionsSyncStateFlow.value !is SyncState.Synced) {
                         _transactionsSyncStateFlow.update { syncState }
-//                    }
+                    } else if (syncState is SyncState.NotSynced) {
+                        _transactionsSyncStateFlow.update { syncState }
+                    }
                 }
             }
         }
