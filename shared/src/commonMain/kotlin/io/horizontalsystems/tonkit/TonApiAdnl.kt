@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import org.ton.api.liteclient.config.LiteClientConfigGlobal
 import org.ton.bitstring.BitString
@@ -28,17 +27,8 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     private val json = Json {
         ignoreUnknownKeys = true
     }
-    private val liteClient: LiteClient
 
-    init {
-        val config = json.decodeFromString(
-            LiteClientConfigGlobal.serializer(),
-            runBlocking {
-                httpClient.get("https://ton.org/global.config.json").bodyAsText()
-            }
-        )
-        liteClient = LiteClient(Dispatchers.Default, config)
-    }
+    private var liteClient: LiteClient? = null
 
     suspend fun getBalance(): String? {
         val fullAccountState = getFullAccountState()
@@ -57,15 +47,15 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         } ?: return listOf()
 
         try {
-            val transactions = liteClient.getTransactions(addrStd, transactionId, limit)
-            return transactions.map { createTonTransaction(it) } ?: listOf()
+            val transactions = getLiteClient().getTransactions(addrStd, transactionId, limit)
+            return transactions.map { createTonTransaction(it) }
         } catch (e: LiteServerUnknownException) {
             return listOf()
         }
     }
 
     suspend fun getFullAccountState(): FullAccountState {
-        return liteClient.getAccountState(addrStd)
+        return getLiteClient().getAccountState(addrStd)
     }
 
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
@@ -128,7 +118,26 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         return getFullAccountState().lastTransactionId?.hash?.toHex()
     }
 
-    fun getLiteApi(): LiteApi? {
-        return liteClient?.liteApi
+    suspend fun getLiteApi(): LiteApi {
+        return getLiteClient().liteApi
+    }
+
+    private suspend fun getLiteClient(): LiteClient {
+        liteClient?.let {
+            return it
+        }
+
+        val client = createLiteClient()
+        liteClient = client
+
+        return client
+    }
+
+    private suspend fun createLiteClient(): LiteClient {
+        val config = json.decodeFromString(
+            LiteClientConfigGlobal.serializer(),
+            httpClient.get("https://ton.org/global.config.json").bodyAsText()
+        )
+        return LiteClient(Dispatchers.Default, config)
     }
 }

@@ -14,7 +14,6 @@ class TransactionSender(
 ) {
     suspend fun send(recipient: String, amount: String) {
         val liteApi = adnl.getLiteApi()
-        checkNotNull(liteApi)
 
         val fullAccountStateOrNull = adnl.getFullAccountState()
         val wallet = (fullAccountStateOrNull.account.value as? AccountInfo)?.let {
