@@ -12,6 +12,8 @@
 		11B3509510C56A130FA3CE62 /* BalanceViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B35873306CAF2F3409CA35 /* BalanceViewModel.swift */; };
 		11B353D1C34FDC08CE4A7A36 /* Singleton.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B3554ECDF99106F96CD61C /* Singleton.swift */; };
 		11B355E4254DB08040B2B7FF /* Publishers.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B351D61E06BC9608198B6B /* Publishers.swift */; };
+		11B35A84497EA83883D0ACCB /* TransactionsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B35B6B2F1EC6FA79F7285C /* TransactionsView.swift */; };
+		11B35BDAEC051E154E22B2D3 /* TransactionsViewModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B352ACA3752E2837AA13F6 /* TransactionsViewModel.swift */; };
 		11B35D74DABA42BF0E095B0A /* BalanceView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 11B35DC494F6190BE06F329B /* BalanceView.swift */; };
 		2152FB042600AC8F00CF470E /* iOSApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 2152FB032600AC8F00CF470E /* iOSApp.swift */; };
 		7555FF83242A565900829871 /* MainView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 7555FF82242A565900829871 /* MainView.swift */; };
@@ -34,8 +36,10 @@
 		058557BA273AAA24004C7B11 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		058557D8273AAEEB004C7B11 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		11B351D61E06BC9608198B6B /* Publishers.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Publishers.swift; sourceTree = "<group>"; };
+		11B352ACA3752E2837AA13F6 /* TransactionsViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionsViewModel.swift; sourceTree = "<group>"; };
 		11B3554ECDF99106F96CD61C /* Singleton.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Singleton.swift; sourceTree = "<group>"; };
 		11B35873306CAF2F3409CA35 /* BalanceViewModel.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BalanceViewModel.swift; sourceTree = "<group>"; };
+		11B35B6B2F1EC6FA79F7285C /* TransactionsView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TransactionsView.swift; sourceTree = "<group>"; };
 		11B35DC494F6190BE06F329B /* BalanceView.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = BalanceView.swift; sourceTree = "<group>"; };
 		2152FB032600AC8F00CF470E /* iOSApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = iOSApp.swift; sourceTree = "<group>"; };
 		7555FF7B242A565900829871 /* iosApp.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = iosApp.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -69,6 +73,15 @@
 				11B35873306CAF2F3409CA35 /* BalanceViewModel.swift */,
 			);
 			path = Balance;
+			sourceTree = "<group>";
+		};
+		11B3561A7866CE8EA64FE278 /* Transactions */ = {
+			isa = PBXGroup;
+			children = (
+				11B35B6B2F1EC6FA79F7285C /* TransactionsView.swift */,
+				11B352ACA3752E2837AA13F6 /* TransactionsViewModel.swift */,
+			);
+			path = Transactions;
 			sourceTree = "<group>";
 		};
 		11B3578A741C1DB8B5BC6D42 /* Core */ = {
@@ -107,6 +120,7 @@
 				058557D7273AAEEB004C7B11 /* Preview Content */,
 				11B3578A741C1DB8B5BC6D42 /* Core */,
 				11B354179609C0B5E5A12C99 /* Balance */,
+				11B3561A7866CE8EA64FE278 /* Transactions */,
 			);
 			path = iosApp;
 			sourceTree = "<group>";
@@ -216,6 +230,8 @@
 				11B35D74DABA42BF0E095B0A /* BalanceView.swift in Sources */,
 				11B3509510C56A130FA3CE62 /* BalanceViewModel.swift in Sources */,
 				11B355E4254DB08040B2B7FF /* Publishers.swift in Sources */,
+				11B35A84497EA83883D0ACCB /* TransactionsView.swift in Sources */,
+				11B35BDAEC051E154E22B2D3 /* TransactionsViewModel.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

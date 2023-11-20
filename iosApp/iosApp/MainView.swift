@@ -10,10 +10,12 @@ struct MainView: View {
                 Label("Balance", systemImage: "dollarsign.circle")
             }
 
-            Text("Transactions")
-                .tabItem {
-                    Label("Transactions", systemImage: "list.bullet")
-                }
+            NavigationView {
+                TransactionsView()
+            }
+            .tabItem {
+                Label("Transactions", systemImage: "list.bullet")
+            }
 
             Text("Send")
                 .tabItem {

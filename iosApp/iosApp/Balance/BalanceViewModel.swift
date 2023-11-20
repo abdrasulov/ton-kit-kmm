@@ -3,14 +3,13 @@ import Foundation
 import TonKitKmm
 
 class BalanceViewModel: ObservableObject {
+    private let tonKit = Singleton.instance.tonKit
     private var cancellables = Set<AnyCancellable>()
 
     let address: String
     @Published private(set) var balance: String?
     @Published private(set) var balanceSyncState: String = ""
     @Published private(set) var txSyncState: String = ""
-
-    private let tonKit = Singleton.instance.tonKit
 
     init() {
         address = tonKit.receiveAddress

@@ -40,28 +40,4 @@ class TonKit(
     suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {
         return transactionManager.transactions(fromTransactionHash, type, limit)
     }
-
-    fun onNewTransactions(callback: (List<TonTransaction>) -> Unit) {
-        coroutineScope.launch {
-            newTransactionsFlow.collect(callback)
-        }
-    }
-
-    fun onBalance(callback: (String?) -> Unit) {
-        coroutineScope.launch {
-            balanceFlow.collect(callback)
-        }
-    }
-
-    fun onBalanceSyncState(callback: (SyncState) -> Unit) {
-        coroutineScope.launch {
-            balanceSyncStateFlow.collect(callback)
-        }
-    }
-
-    fun onTransactionsSyncState(callback: (SyncState) -> Unit) {
-        coroutineScope.launch {
-            transactionsSyncStateFlow.collect(callback)
-        }
-    }
 }
