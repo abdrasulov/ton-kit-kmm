@@ -46,11 +46,26 @@ class TonApiAdnl(private val addrStd: AddrStd) {
             else -> getFullAccountState().lastTransactionId
         } ?: return listOf()
 
-        try {
-            val transactions = getLiteClient().getTransactions(addrStd, transactionId, limit)
-            return transactions.map { createTonTransaction(it) }
-        } catch (e: LiteServerUnknownException) {
-            return listOf()
+        val transactions = getLiteClient().getTransactionsWithAttempts(addrStd, transactionId, limit)
+        return transactions.map { createTonTransaction(it) }
+    }
+
+    private suspend fun LiteClient.getTransactionsWithAttempts(
+        accountAddress: AddrStd,
+        fromTransactionId: TransactionId,
+        count: Int,
+    ): List<TransactionInfo> {
+        val maxAttempts = 3
+        var attemptNumber = 1
+
+        while (true) {
+            val result = try {
+                getTransactions(accountAddress, fromTransactionId, count)
+            } catch (e: LiteServerUnknownException) {
+                listOf()
+            }
+
+            if (result.size == count || attemptNumber++ == maxAttempts) return result
         }
     }
 
