@@ -105,7 +105,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 
     private fun getValue(msgInfo: CommonMsgInfo?) = when (msgInfo) {
-        is IntMsgInfo -> msgInfo.value.coins.toString()
+        is IntMsgInfo -> msgInfo.value.coins.amount.value.toString(10)
         is ExtInMsgInfo -> null
         is ExtOutMsgInfo -> null
         null -> null

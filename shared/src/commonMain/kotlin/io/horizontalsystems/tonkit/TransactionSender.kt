@@ -1,14 +1,18 @@
 package io.horizontalsystems.tonkit
 
 import org.ton.api.pk.PrivateKeyEd25519
+import org.ton.bigint.BigInt
 import org.ton.block.AccountInfo
+import org.ton.block.Coins
+import org.ton.block.MsgAddressInt
+import org.ton.contract.wallet.WalletTransfer
 import org.ton.contract.wallet.WalletV4R2Contract
 
 class TransactionSender(
     private val adnl: TonApiAdnl,
     private val privateKey: PrivateKeyEd25519,
 ) {
-    suspend fun send(dest: String, amount: String) {
+    suspend fun send(recipient: String, amount: String) {
         val liteApi = adnl.getLiteApi()
         checkNotNull(liteApi)
 
@@ -18,12 +22,11 @@ class TransactionSender(
         }
 
         checkNotNull(wallet)
-        val decimals = 9
 
-//        wallet.transfer(liteApi, privateKey, WalletTransfer {
-//            destination = MsgAddressInt.parseUserFriendly(dest)
-//            coins = Coins.ofNano(amount.movePointRight(decimals).toBigInteger())
-//            bounceable = false
-//        })
+        wallet.transfer(liteApi, privateKey, WalletTransfer {
+            destination = MsgAddressInt.parseUserFriendly(recipient)
+            coins = Coins.ofNano(BigInt(amount))
+            bounceable = false
+        })
     }
 }

@@ -29,12 +29,12 @@ class TonKit(
         syncer.stop()
     }
 
-    suspend fun send(dest: String, amount: String) {
+    suspend fun send(recipient: String, amount: String) {
         checkNotNull(transactionSender) {
             "Sending is not available for watch account"
         }
 
-        transactionSender.send(dest, amount)
+        transactionSender.send(recipient, amount)
     }
 
     suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {

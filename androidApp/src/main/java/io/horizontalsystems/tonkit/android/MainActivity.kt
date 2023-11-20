@@ -126,7 +126,7 @@ fun SendScreen(viewModel: MainViewModel, uiState: MainUiState) {
             value = recipientStr,
             onValueChange = {
                 recipientStr = it
-                viewModel.setDest(it)
+                viewModel.setRecipient(it)
             },
             label = { Text("Recipient") },
         )

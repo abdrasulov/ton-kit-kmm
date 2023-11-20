@@ -111,15 +111,15 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    private var sendDest: String? = null
+    private var sendRecipient: String? = null
     private var sendAmount: BigDecimal? = null
 
     fun setAmount(amount: String) {
         sendAmount = amount.toBigDecimal()
     }
 
-    fun setDest(dest: String) {
-        sendDest = dest
+    fun setRecipient(recipient: String) {
+        sendRecipient = recipient
     }
 
     var sendResult by mutableStateOf("")
@@ -129,12 +129,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         viewModelScope.launch(Dispatchers.Default) {
             sendResult = ""
             sendResult = try {
-                val sendDest = sendDest
+                val sendRecipient = sendRecipient
                 val sendAmount = sendAmount
-                checkNotNull(sendDest)
+                checkNotNull(sendRecipient)
                 checkNotNull(sendAmount)
 
-                tonKit.send(sendDest, sendAmount.toString())
+                tonKit.send(sendRecipient, sendAmount.toString())
 
                 "Send success"
             } catch (t: Throwable) {
