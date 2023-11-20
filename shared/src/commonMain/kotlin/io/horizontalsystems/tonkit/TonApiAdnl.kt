@@ -18,6 +18,7 @@ import org.ton.block.MsgAddressInt
 import org.ton.lite.api.LiteApi
 import org.ton.lite.api.exception.LiteServerUnknownException
 import org.ton.lite.client.LiteClient
+import org.ton.lite.client.internal.FullAccountState
 import org.ton.lite.client.internal.TransactionId
 import org.ton.lite.client.internal.TransactionInfo
 
@@ -40,7 +41,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 
     suspend fun getBalance(): String? {
-        val fullAccountState = getFullAccountStateOrNull() ?: return null
+        val fullAccountState = getFullAccountState()
         val account = fullAccountState.account.value
         return if (account is AccountInfo) {
             account.storage.balance.coins.amount.value.toString(10)
@@ -52,7 +53,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     suspend fun transactions(transactionHash: String?, lt: Long?, limit: Int): List<TonTransaction> {
         val transactionId = when {
             transactionHash != null && lt != null -> TransactionId(BitString(transactionHash), lt)
-            else -> getFullAccountStateOrNull()?.lastTransactionId
+            else -> getFullAccountState().lastTransactionId
         } ?: return listOf()
 
         try {
@@ -63,10 +64,8 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         }
     }
 
-    suspend fun getFullAccountStateOrNull() = try {
-        liteClient?.getAccountState(addrStd)
-    } catch (e: Exception) {
-        null
+    suspend fun getFullAccountState(): FullAccountState {
+        return liteClient.getAccountState(addrStd)
     }
 
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
@@ -126,7 +125,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 
     suspend fun getLatestTransactionHash(): String? {
-        return getFullAccountStateOrNull()?.lastTransactionId?.hash?.toHex()
+        return getFullAccountState().lastTransactionId?.hash?.toHex()
     }
 
     fun getLiteApi(): LiteApi? {

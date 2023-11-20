@@ -16,8 +16,8 @@ class TransactionSender(
         val liteApi = adnl.getLiteApi()
         checkNotNull(liteApi)
 
-        val fullAccountStateOrNull = adnl.getFullAccountStateOrNull()
-        val wallet = (fullAccountStateOrNull?.account?.value as? AccountInfo)?.let {
+        val fullAccountStateOrNull = adnl.getFullAccountState()
+        val wallet = (fullAccountStateOrNull.account.value as? AccountInfo)?.let {
             WalletV4R2Contract(it)
         }
 
