@@ -48,6 +48,7 @@ class TonKit(
     }
 
     companion object {
+        @Throws(Exception::class)
         fun validate(address: String) {
             AddrStd.parse(address)
         }
