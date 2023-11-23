@@ -1,7 +1,7 @@
 import io.horizontalsystems.tonkit.TransactionType;
 
 CREATE TABLE TonTransaction (
-    hash TEXT NOT NULL PRIMARY KEY NOT NULL,
+    hash TEXT NOT NULL PRIMARY KEY,
     lt INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
     value TEXT,
