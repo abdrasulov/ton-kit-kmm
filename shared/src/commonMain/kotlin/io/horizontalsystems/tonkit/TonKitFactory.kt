@@ -46,7 +46,7 @@ class TonKitFactory(private val driverFactory: DriverFactory) {
         val database = Database(driverFactory, "ton-$walletId.db")
 
         val transactionManager = TransactionManager(adnl, TransactionStorage(database.transactionQuery))
-        val balanceManager = BalanceManager(adnl)
+        val balanceManager = BalanceManager(adnl, BalanceStorage(database.balanceQuery))
 
         val transactionSender = if (privateKey != null) {
             TransactionSender(adnl, privateKey)

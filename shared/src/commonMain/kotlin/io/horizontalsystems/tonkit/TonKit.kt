@@ -17,7 +17,7 @@ class TonKit(
     val balanceSyncStateFlow by syncer::balanceSyncStateFlow
     val transactionsSyncStateFlow by syncer::transactionsSyncStateFlow
 
-    val balance: String?
+    val balance: String
         get() = balanceFlow.value
     val balanceSyncState: SyncState
         get() = balanceSyncStateFlow.value

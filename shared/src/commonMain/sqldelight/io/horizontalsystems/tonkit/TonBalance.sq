@@ -1,0 +1,11 @@
+CREATE TABLE TonBalance (
+    id TEXT NOT NULL PRIMARY KEY,
+    value TEXT
+);
+
+insert:
+INSERT OR REPLACE INTO TonBalance(id, value)
+VALUES ("", ?);
+
+get:
+SELECT * FROM TonBalance WHERE id = "";
