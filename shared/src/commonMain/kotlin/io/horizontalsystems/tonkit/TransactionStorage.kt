@@ -1,7 +1,6 @@
 package io.horizontalsystems.tonkit
 
-class TransactionStorage(database: Database) {
-    private val transactionQuery = database.transactionQuery
+class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
 
     fun getLatestTransaction(): TonTransaction? {
         return transactionQuery.getLatest().executeAsOneOrNull()
