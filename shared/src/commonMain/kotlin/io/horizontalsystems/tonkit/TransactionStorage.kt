@@ -62,6 +62,7 @@ class TransactionStorage(database: Database) {
                     transaction.lt,
                     transaction.timestamp,
                     transaction.value_,
+                    transaction.fee,
                     transaction.type,
                     transaction.src,
                     transaction.dest,

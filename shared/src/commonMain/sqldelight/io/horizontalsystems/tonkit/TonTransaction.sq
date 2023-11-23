@@ -5,14 +5,15 @@ CREATE TABLE TonTransaction (
     lt INTEGER NOT NULL,
     timestamp INTEGER NOT NULL,
     value TEXT,
+    fee TEXT,
     type TEXT NOT NULL,
     src TEXT,
     dest TEXT
 );
 
 insert:
-INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, value, type, src, dest)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, value, fee, type, src, dest)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 selectEarliest:
 SELECT *

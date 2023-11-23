@@ -34,6 +34,7 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.tonkit.TonTransaction
 import kotlinx.coroutines.launch
+import java.math.BigDecimal
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -186,14 +187,23 @@ fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Uni
 
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 val date = DateFormat.format("yyyy-MM-dd hh:mm:ss a", it.timestamp * 1000)
+                val decimals = 9
+                val value_ = it.value_?.let {
+                    BigDecimal(it.toBigInteger(), decimals)
+                }
+                val fee = it.fee?.let {
+                    BigDecimal(it.toBigInteger(), decimals)
+                }
+
                 Text(text = "# $i")
                 Text(text = "Hash: ${it.hash}")
                 Text(text = "Type: ${it.type}")
-                Text(text = "Value: ${it.value_}")
+                Text(text = "Value: ${value_?.toPlainString()}")
                 Text(text = "From: ${it.src}")
                 Text(text = "To: ${it.dest}")
                 Text(text = "Date: $date")
                 Text(text = "LT: ${it.lt}")
+                Text(text = "Fee: ${fee?.toPlainString()}")
             }
             Divider()
         }

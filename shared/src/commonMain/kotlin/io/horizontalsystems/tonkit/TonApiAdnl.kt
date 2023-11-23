@@ -102,6 +102,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
             value_ = getValue(msgInfo),
+            fee = info.transaction.value.totalFees.coins.amount.value.toString(10),
             type = transactionType.name,
             src = getSrc(msgInfo),
             dest = getDest(msgInfo),
