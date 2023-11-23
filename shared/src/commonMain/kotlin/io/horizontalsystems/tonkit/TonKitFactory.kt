@@ -8,11 +8,11 @@ import org.ton.contract.wallet.WalletV4R2Contract
 import org.ton.mnemonic.Mnemonic
 
 class TonKitFactory(private val driverFactory: DriverFactory) {
-    fun create(words: List<String>, passphrase: String): TonKit {
-        return create(Mnemonic.toSeed(words, passphrase))
+    fun create(words: List<String>, passphrase: String, walletId: String): TonKit {
+        return create(Mnemonic.toSeed(words, passphrase), walletId)
     }
 
-    fun create(seed: ByteArray): TonKit {
+    fun create(seed: ByteArray, walletId: String): TonKit {
         val privateKey = PrivateKeyEd25519(seed)
         val publicKey = privateKey.publicKey()
         val wallet = WalletV4R2Contract(0, publicKey)
@@ -26,23 +26,24 @@ class TonKitFactory(private val driverFactory: DriverFactory) {
 
         checkNotNull(adnl)
 
-        return createInternal(adnl, receiveAddress, privateKey)
+        return createInternal(adnl, receiveAddress, privateKey, walletId)
     }
 
-    fun createWatch(address: String): TonKit {
+    fun createWatch(address: String, walletId: String): TonKit {
         val addrStd = AddrStd.parse(address)
         val receiveAddress = MsgAddressInt.toString(addrStd, bounceable = false)
         val adnl = TonApiAdnl(addrStd)
 
-        return createInternal(adnl, receiveAddress, null)
+        return createInternal(adnl, receiveAddress, null, walletId)
     }
 
     private fun createInternal(
         adnl: TonApiAdnl,
         receiveAddress: String,
-        privateKey: PrivateKeyEd25519?
+        privateKey: PrivateKeyEd25519?,
+        walletId: String
     ): TonKit {
-        val database = Database(driverFactory)
+        val database = Database(driverFactory, "ton-$walletId.db")
 
         val transactionStorage = TransactionStorage(database)
         val transactionManager = TransactionManager(adnl, transactionStorage)

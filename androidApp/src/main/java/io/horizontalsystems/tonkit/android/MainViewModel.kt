@@ -19,8 +19,8 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val passphrase = ""
     private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
 
-    //    private val tonKit = TonKitFactory().create(words, passphrase, application)
-    private val tonKit = TonKitFactory(DriverFactory(getApplication())).createWatch(watchAddress)
+//    private val tonKit = TonKitFactory(DriverFactory(getApplication())).create(words, passphrase, "used")
+    private val tonKit = TonKitFactory(DriverFactory(getApplication())).createWatch(watchAddress, "watch")
 
     val address = tonKit.receiveAddress
 

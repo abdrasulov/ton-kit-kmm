@@ -10,7 +10,7 @@ struct Singleton {
     let tonKit: TonKit
 
     init() {
-        tonKit = TonKitFactory(driverFactory: DriverFactory()).createWatch(address: watchAddress)
+        tonKit = TonKitFactory(driverFactory: DriverFactory()).createWatch(address: watchAddress, walletId: "watch")
         tonKit.start()
     }
 }
