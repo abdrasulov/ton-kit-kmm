@@ -3,6 +3,7 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import org.ton.block.AddrStd
 
 class TonKit(
     private val transactionManager: TransactionManager,
@@ -44,5 +45,11 @@ class TonKit(
 
     suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {
         return transactionManager.transactions(fromTransactionHash, type, limit)
+    }
+
+    companion object {
+        fun validate(address: String) {
+            AddrStd.parse(address)
+        }
     }
 }
