@@ -3,11 +3,8 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.async
-import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
-import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -30,6 +27,8 @@ class Syncer(
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
     private var syncerJob: Job? = null
+    private var balanceSyncerJob: Job? = null
+    private var transactionSyncerJob: Job? = null
 
     fun start() {
         coroutineScope.launch {
@@ -46,6 +45,8 @@ class Syncer(
 
     private suspend fun cancelSyncer() {
         syncerJob?.cancelAndJoin()
+        balanceSyncerJob?.cancelAndJoin()
+        transactionSyncerJob?.cancelAndJoin()
 
         _balanceSyncStateFlow.update {
             SyncState.NotSynced(SyncError.NoNetworkConnection())
@@ -64,27 +65,26 @@ class Syncer(
         }
     }
 
-    private suspend fun sync() = coroutineScope {
-        awaitAll(
-            async {
-                balanceManager.sync().collect { syncState ->
-                    if (_balanceSyncStateFlow.value !is SyncState.Synced) {
-                        _balanceSyncStateFlow.update { syncState }
-                    } else if (syncState is SyncState.NotSynced) {
-                        _balanceSyncStateFlow.update { syncState }
-                    }
-                }
-            },
-            async {
-                transactionManager.sync().collect { syncState ->
-                    if (_transactionsSyncStateFlow.value !is SyncState.Synced) {
-                        _transactionsSyncStateFlow.update { syncState }
-                    } else if (syncState is SyncState.NotSynced) {
-                        _transactionsSyncStateFlow.update { syncState }
-                    }
+    private fun sync() {
+        balanceSyncerJob = coroutineScope.launch {
+            balanceManager.sync().collect { syncState ->
+                if (_balanceSyncStateFlow.value !is SyncState.Synced) {
+                    _balanceSyncStateFlow.update { syncState }
+                } else if (syncState is SyncState.NotSynced) {
+                    _balanceSyncStateFlow.update { syncState }
                 }
             }
-        )
+        }
+
+        transactionSyncerJob = coroutineScope.launch {
+            transactionManager.sync().collect { syncState ->
+                if (_transactionsSyncStateFlow.value !is SyncState.Synced) {
+                    _transactionsSyncStateFlow.update { syncState }
+                } else if (syncState is SyncState.NotSynced) {
+                    _transactionsSyncStateFlow.update { syncState }
+                }
+            }
+        }
     }
 
     fun stop() {
