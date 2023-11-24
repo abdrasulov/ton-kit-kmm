@@ -6,12 +6,14 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.ton.api.liteclient.config.LiteClientConfigGlobal
+import org.ton.bigint.BigInt
+import org.ton.bigint.plus
+import org.ton.bigint.toBigInt
 import org.ton.bitstring.BitString
 import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.block.CommonMsgInfo
-import org.ton.block.ExtInMsgInfo
-import org.ton.block.ExtOutMsgInfo
+import org.ton.block.CurrencyCollection
 import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
 import org.ton.lite.api.LiteApi
@@ -74,26 +76,47 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
-        val inMsg = info.transaction.value.r1.value.inMsg.value?.value?.info
-        val outMsgs = info.transaction.value.r1.value.outMsgs
+        val txAux = info.transaction.value.r1.value
+
+        val inMsgInfo = txAux.inMsg.value?.value?.info
+        val outMsgs = txAux.outMsgs
 
         val transactionType: TransactionType
         val msgInfo: CommonMsgInfo?
+        val collectMsgFees: Boolean
         when {
             outMsgs.count() == 1 -> {
-                val outMsg = outMsgs.first().second.value.info
-                msgInfo = outMsg
+                val outMsgInfo = outMsgs.first().second.value.info
+                msgInfo = outMsgInfo
                 transactionType = TransactionType.Outgoing
+                collectMsgFees = true
             }
 
-            inMsg != null -> {
-                msgInfo = inMsg
+            inMsgInfo != null -> {
+                msgInfo = inMsgInfo
                 transactionType = TransactionType.Incoming
+                collectMsgFees = false
             }
 
             else -> {
                 msgInfo = null
-                transactionType = TransactionType.Outgoing
+                transactionType = TransactionType.Unknown
+                collectMsgFees = true
+            }
+        }
+
+        var value: CurrencyCollection? = null
+        var src: MsgAddressInt? = null
+        var dest: MsgAddressInt? = null
+        var msgFees: BigInt = 0.toBigInt()
+
+        if (msgInfo is IntMsgInfo) {
+            value = msgInfo.value
+            src = msgInfo.src
+            dest = msgInfo.dest
+
+            if (collectMsgFees) {
+                msgFees = msgInfo.fwd_fee.amount.value + msgInfo.ihr_fee.amount.value
             }
         }
 
@@ -101,33 +124,12 @@ class TonApiAdnl(private val addrStd: AddrStd) {
             hash = info.id.hash.toHex(),
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
-            value_ = getValue(msgInfo),
-            fee = info.transaction.value.totalFees.coins.amount.value.toString(10),
+            value_ = value?.coins?.amount?.value?.toString(10),
+            fee = (info.transaction.value.totalFees.coins.amount.value + msgFees).toString(10),
             type = transactionType.name,
-            src = getSrc(msgInfo),
-            dest = getDest(msgInfo),
+            src = src?.let { MsgAddressInt.toString(it, bounceable = false) },
+            dest = dest?.let { MsgAddressInt.toString(it, bounceable = false) },
         )
-    }
-
-    private fun getValue(msgInfo: CommonMsgInfo?) = when (msgInfo) {
-        is IntMsgInfo -> msgInfo.value.coins.amount.value.toString(10)
-        is ExtInMsgInfo -> null
-        is ExtOutMsgInfo -> null
-        null -> null
-    }
-
-    private fun getSrc(msgInfo: CommonMsgInfo?) = when (msgInfo) {
-        is IntMsgInfo -> MsgAddressInt.toString(msgInfo.src, bounceable = false)
-        is ExtInMsgInfo -> null
-        is ExtOutMsgInfo -> null
-        null -> null
-    }
-
-    private fun getDest(msgInfo: CommonMsgInfo?) = when (msgInfo) {
-        is IntMsgInfo -> MsgAddressInt.toString(msgInfo.dest, bounceable = false)
-        is ExtInMsgInfo -> null
-        is ExtOutMsgInfo -> null
-        null -> null
     }
 
     suspend fun getLatestTransactionHash(): String? {
