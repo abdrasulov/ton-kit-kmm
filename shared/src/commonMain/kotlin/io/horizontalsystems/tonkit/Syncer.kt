@@ -2,7 +2,12 @@ package io.horizontalsystems.tonkit
 
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
+import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -13,7 +18,7 @@ import kotlin.time.Duration.Companion.seconds
 class Syncer(
     private val transactionManager: TransactionManager,
     private val balanceManager: BalanceManager,
-//    private val connectionManager: ConnectionManager,
+    private val connectionManager: ConnectionManager,
 ) {
     private val _balanceSyncStateFlow = MutableStateFlow<SyncState>(SyncState.NotSynced(SyncError.NotStarted()))
     val balanceSyncStateFlow: StateFlow<SyncState>
@@ -24,34 +29,44 @@ class Syncer(
         get() = _transactionsSyncStateFlow.asStateFlow()
 
     private val coroutineScope = CoroutineScope(Dispatchers.Default)
+    private var syncerJob: Job? = null
 
     fun start() {
         coroutineScope.launch {
+            connectionManager.isConnectedFlow.collect { isConnected ->
+                if (isConnected) {
+                    runSyncer()
+                } else {
+                    cancelSyncer()
+                }
+            }
+        }
+        connectionManager.start()
+    }
+
+    private suspend fun cancelSyncer() {
+        syncerJob?.cancelAndJoin()
+
+        _balanceSyncStateFlow.update {
+            SyncState.NotSynced(SyncError.NoNetworkConnection())
+        }
+        _transactionsSyncStateFlow.update {
+            SyncState.NotSynced(SyncError.NoNetworkConnection())
+        }
+    }
+
+    private fun runSyncer() {
+        syncerJob = coroutineScope.launch {
             // TON generates a new block on each shardchain and the masterchain approximately every 5 seconds
             tickerFlow(5.seconds).collect {
                 sync()
             }
         }
-//        connectionManager.listener = object: ConnectionManager.Listener {
-//            override fun onConnectionChange() {
-//                sync()
-//            }
-//        }
     }
 
-    private fun sync() {
-//        if (!connectionManager.isConnected) {
-        if (false) {
-            coroutineScope.launch {
-                _balanceSyncStateFlow.update {
-                    SyncState.NotSynced(SyncError.NoNetworkConnection())
-                }
-                _transactionsSyncStateFlow.update {
-                    SyncState.NotSynced(SyncError.NoNetworkConnection())
-                }
-            }
-        } else {
-            coroutineScope.launch {
+    private suspend fun sync() = coroutineScope {
+        awaitAll(
+            async {
                 balanceManager.sync().collect { syncState ->
                     if (_balanceSyncStateFlow.value !is SyncState.Synced) {
                         _balanceSyncStateFlow.update { syncState }
@@ -59,9 +74,8 @@ class Syncer(
                         _balanceSyncStateFlow.update { syncState }
                     }
                 }
-            }
-
-            coroutineScope.launch {
+            },
+            async {
                 transactionManager.sync().collect { syncState ->
                     if (_transactionsSyncStateFlow.value !is SyncState.Synced) {
                         _transactionsSyncStateFlow.update { syncState }
@@ -70,12 +84,11 @@ class Syncer(
                     }
                 }
             }
-        }
+        )
     }
 
     fun stop() {
+        connectionManager.stop()
         coroutineScope.cancel()
-//        connectionManager.listener = null
-//        connectionManager.stop()
     }
 }

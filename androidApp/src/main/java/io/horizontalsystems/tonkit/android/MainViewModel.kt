@@ -6,6 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.AndroidViewModel
 import androidx.lifecycle.viewModelScope
+import io.horizontalsystems.tonkit.ConnectionManager
 import io.horizontalsystems.tonkit.DriverFactory
 import io.horizontalsystems.tonkit.SyncState
 import io.horizontalsystems.tonkit.TonKitFactory
@@ -20,7 +21,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
 
 //    private val tonKit = TonKitFactory(DriverFactory(getApplication())).create(words, passphrase, "used")
-    private val tonKit = TonKitFactory(DriverFactory(getApplication())).createWatch(watchAddress, "watch")
+    private val tonKit = TonKitFactory(DriverFactory(getApplication()), ConnectionManager(getApplication())).createWatch(watchAddress, "watch")
 
     val address = tonKit.receiveAddress
 

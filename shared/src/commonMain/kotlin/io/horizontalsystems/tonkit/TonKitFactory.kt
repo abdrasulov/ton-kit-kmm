@@ -7,7 +7,7 @@ import org.ton.block.MsgAddressInt
 import org.ton.contract.wallet.WalletV4R2Contract
 import org.ton.mnemonic.Mnemonic
 
-class TonKitFactory(private val driverFactory: DriverFactory) {
+class TonKitFactory(private val driverFactory: DriverFactory, private val connectionManager: ConnectionManager) {
     fun create(words: List<String>, passphrase: String, walletId: String): TonKit {
         return create(Mnemonic.toSeed(words, passphrase), walletId)
     }
@@ -54,7 +54,7 @@ class TonKitFactory(private val driverFactory: DriverFactory) {
             null
         }
 
-        val syncer = Syncer(transactionManager, balanceManager)
+        val syncer = Syncer(transactionManager, balanceManager, connectionManager)
         return TonKit(transactionManager, balanceManager, receiveAddress, syncer, transactionSender)
     }
 }
