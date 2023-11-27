@@ -14,17 +14,14 @@ actual class ConnectionManager(context: Context) {
 
     private val connectivityManager = context.getSystemService(Context.CONNECTIVITY_SERVICE) as ConnectivityManager
 
-    var isConnected = getInitialConnectionStatus()
-
-    private val _isConnectedFlow = MutableStateFlow(isConnected)
+    private val _isConnectedFlow = MutableStateFlow(calculateIsConnected())
     actual val isConnectedFlow: StateFlow<Boolean>
         get() = _isConnectedFlow.asStateFlow()
 
-    private var hasValidInternet = false
-    private var hasConnection = false
     private var callback = ConnectionStatusCallback()
 
     actual fun start() {
+        refreshState()
         connectivityManager.registerNetworkCallback(NetworkRequest.Builder().build(), callback)
     }
 
@@ -36,49 +33,35 @@ actual class ConnectionManager(context: Context) {
         }
     }
 
-    private fun getInitialConnectionStatus(): Boolean {
-        val network = connectivityManager.activeNetwork ?: return false
+    private fun refreshState() {
+        _isConnectedFlow.update { calculateIsConnected() }
+    }
 
-        hasConnection = true
-        val capabilities = connectivityManager.getNetworkCapabilities(network)
-        hasValidInternet = capabilities?.let {
-            it.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) && it.hasCapability(
-                NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-        } ?: false
-
-        return hasValidInternet
+    private fun calculateIsConnected(): Boolean {
+        val activeNetwork = connectivityManager.activeNetwork ?: return false
+        val networkCapabilities = connectivityManager.getNetworkCapabilities(activeNetwork)
+        return networkCapabilities != null &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET) &&
+            networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
     }
 
     inner class ConnectionStatusCallback : ConnectivityManager.NetworkCallback() {
-
-        private val activeNetworks: MutableList<Network> = mutableListOf()
-
         override fun onLost(network: Network) {
-            super.onLost(network)
-            activeNetworks.removeAll { activeNetwork -> activeNetwork == network }
-            hasConnection = activeNetworks.isNotEmpty()
-            updatedConnectionState()
+            if (connectivityManager.activeNetwork == null || connectivityManager.activeNetwork == network) {
+                refreshState()
+            }
         }
 
         override fun onCapabilitiesChanged(network: Network, networkCapabilities: NetworkCapabilities) {
-            super.onCapabilitiesChanged(network, networkCapabilities)
-            hasValidInternet = networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_INTERNET)
-                && networkCapabilities.hasCapability(NetworkCapabilities.NET_CAPABILITY_VALIDATED)
-            updatedConnectionState()
+            if (connectivityManager.activeNetwork == network) {
+                refreshState()
+            }
         }
 
         override fun onAvailable(network: Network) {
-            super.onAvailable(network)
-            if (activeNetworks.none { activeNetwork -> activeNetwork == network }) {
-                activeNetworks.add(network)
+            if (connectivityManager.activeNetwork == network) {
+                refreshState()
             }
-            hasConnection = activeNetworks.isNotEmpty()
-            updatedConnectionState()
         }
-    }
-
-    private fun updatedConnectionState() {
-        isConnected = hasConnection && hasValidInternet
-        _isConnectedFlow.update { isConnected }
     }
 }
