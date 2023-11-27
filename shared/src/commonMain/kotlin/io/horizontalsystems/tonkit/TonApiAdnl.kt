@@ -6,13 +6,10 @@ import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
 import kotlinx.serialization.json.Json
 import org.ton.api.liteclient.config.LiteClientConfigGlobal
-import org.ton.bigint.BigInt
 import org.ton.bigint.plus
-import org.ton.bigint.toBigInt
 import org.ton.bitstring.BitString
 import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
-import org.ton.block.CurrencyCollection
 import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
 import org.ton.lite.api.LiteApi
@@ -77,41 +74,30 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
         val txAux = info.transaction.value.r1.value
 
-        val inMsgInfo = txAux.inMsg.value?.value?.info
-        val outMsgs = txAux.outMsgs
+        val outIntMsgInfo = txAux.outMsgs.singleOrNull()?.second?.value?.info as? IntMsgInfo
+        val inIntMsgInfo = txAux.inMsg.value?.value?.info as? IntMsgInfo
+        val intMsgInfo = outIntMsgInfo ?: inIntMsgInfo
 
-        val transactionType: TransactionType
-        var value: CurrencyCollection? = null
-        var src: MsgAddressInt? = null
-        var dest: MsgAddressInt? = null
-        var msgFees: BigInt = 0.toBigInt()
+        val transactionType = when {
+            outIntMsgInfo != null -> TransactionType.Outgoing
+            inIntMsgInfo != null -> TransactionType.Incoming
+            else -> TransactionType.Unknown
+        }
 
-        val firstOutMsgInfo = outMsgs.firstOrNull()?.second?.value?.info
-
-        if (outMsgs.count() == 1 && firstOutMsgInfo is IntMsgInfo) {
-            transactionType = TransactionType.Outgoing
-            value = firstOutMsgInfo.value
-            src = firstOutMsgInfo.src
-            dest = firstOutMsgInfo.dest
-            msgFees = firstOutMsgInfo.fwd_fee.amount.value + firstOutMsgInfo.ihr_fee.amount.value
-        } else if (inMsgInfo is IntMsgInfo) {
-            transactionType = TransactionType.Incoming
-            value = inMsgInfo.value
-            src = inMsgInfo.src
-            dest = inMsgInfo.dest
-        } else {
-            transactionType = TransactionType.Unknown
+        var fee = info.transaction.value.totalFees.coins.amount.value
+        if (outIntMsgInfo != null) {
+            fee += outIntMsgInfo.fwd_fee.amount.value + outIntMsgInfo.ihr_fee.amount.value
         }
 
         return TonTransaction(
             hash = info.id.hash.toHex(),
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
-            value_ = value?.coins?.amount?.value?.toString(10),
-            fee = (info.transaction.value.totalFees.coins.amount.value + msgFees).toString(10),
+            value_ = intMsgInfo?.value?.coins?.amount?.value?.toString(10),
+            fee = fee.toString(10),
             type = transactionType.name,
-            src = src?.let { MsgAddressInt.toString(it, bounceable = false) },
-            dest = dest?.let { MsgAddressInt.toString(it, bounceable = false) },
+            src = intMsgInfo?.src?.let { MsgAddressInt.toString(it, bounceable = false) },
+            dest = intMsgInfo?.dest?.let { MsgAddressInt.toString(it, bounceable = false) },
         )
     }
 
