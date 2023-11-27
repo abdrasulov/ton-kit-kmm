@@ -8,7 +8,8 @@ struct TransactionsView: View {
             VStack(spacing: 8) {
                 row(title: "Hash", value: transaction.hash)
                 row(title: "Type", value: transaction.type)
-                row(title: "Value", value: transaction.value ?? "n/a")
+                row(title: "Value", value: transaction.value?.description ?? "n/a")
+                row(title: "Fee", value: transaction.fee?.description ?? "n/a")
                 row(title: "From", value: transaction.src ?? "n/a")
                 row(title: "To", value: transaction.dest ?? "n/a")
                 row(title: "Timestamp", value: String(transaction.timestamp))

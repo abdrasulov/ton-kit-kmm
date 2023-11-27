@@ -7,41 +7,35 @@ class BalanceViewModel: ObservableObject {
     private var cancellables = Set<AnyCancellable>()
 
     let address: String
-    @Published private(set) var balance: String?
-    @Published private(set) var balanceSyncState: String = ""
-    @Published private(set) var txSyncState: String = ""
+    @Published private(set) var balance: Decimal
+    @Published private(set) var balanceSyncState: String
+    @Published private(set) var txSyncState: String
 
     init() {
         address = tonKit.receiveAddress
+        balance = Singleton.amount(kitAmount: tonKit.balance)
+        balanceSyncState = Singleton.syncState(kitSyncState: tonKit.balanceSyncState)
+        txSyncState = Singleton.syncState(kitSyncState: tonKit.transactionsSyncState)
 
         collect(tonKit.balancePublisher)
             .completeOnFailure()
             .sink { [weak self] balance in
-                self?.balance = balance
+                self?.balance = Singleton.amount(kitAmount: balance)
             }
             .store(in: &cancellables)
 
         collect(tonKit.balanceSyncStatePublisher)
             .completeOnFailure()
             .sink { [weak self] syncState in
-                self?.balanceSyncState = Self.syncState(kitSyncState: syncState)
+                self?.balanceSyncState = Singleton.syncState(kitSyncState: syncState)
             }
             .store(in: &cancellables)
 
         collect(tonKit.transactionsSyncStatePublisher)
             .completeOnFailure()
             .sink { [weak self] syncState in
-                self?.txSyncState = Self.syncState(kitSyncState: syncState)
+                self?.txSyncState = Singleton.syncState(kitSyncState: syncState)
             }
             .store(in: &cancellables)
-    }
-
-    private static func syncState(kitSyncState: AnyObject) -> String {
-        switch kitSyncState {
-        case is TonKitKmm.SyncState.Syncing: return "Syncing"
-        case is TonKitKmm.SyncState.Synced: return "Synced"
-        case is TonKitKmm.SyncState.NotSynced: return "Not Synced"
-        default: return "n/a"
-        }
     }
 }

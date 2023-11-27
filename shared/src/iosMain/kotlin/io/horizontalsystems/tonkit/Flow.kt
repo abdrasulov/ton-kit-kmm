@@ -33,7 +33,7 @@ fun <T> Flow<T>.collect(onEach: (T) -> Unit, onCompletion: (cause: Throwable?) -
     }
 }
 
-fun TonKit.balancePublisher(onEach: (String?) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =
+fun TonKit.balancePublisher(onEach: (String) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =
     balanceFlow.collect(onEach, onCompletion)
 
 fun TonKit.balanceSyncStatePublisher(onEach: (SyncState) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =

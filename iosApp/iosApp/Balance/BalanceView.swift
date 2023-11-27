@@ -6,7 +6,7 @@ struct BalanceView: View {
     var body: some View {
         VStack(spacing: 16) {
             row(title: "Address", value: viewModel.address)
-            row(title: "Balance", value: viewModel.balance ?? "n/a")
+            row(title: "Balance", value: viewModel.balance.description)
             row(title: "Balance Sync State", value: viewModel.balanceSyncState)
             row(title: "Tx Sync State", value: viewModel.txSyncState)
 

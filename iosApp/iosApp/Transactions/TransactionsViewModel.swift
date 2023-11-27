@@ -35,7 +35,8 @@ class TransactionsViewModel: ObservableObject {
                 hash: tx.hash,
                 lt: Int(tx.lt),
                 timestamp: Int(tx.timestamp),
-                value: tx.value_,
+                value: tx.value_.map { Singleton.amount(kitAmount: $0) },
+                fee: tx.fee.map { Singleton.amount(kitAmount: $0) },
                 type: tx.type,
                 src: tx.src,
                 dest: tx.dest
@@ -50,7 +51,8 @@ struct Transaction {
     let hash: String
     let lt: Int
     let timestamp: Int
-    let value: String?
+    let value: Decimal?
+    let fee: Decimal?
     let type: String
     let src: String?
     let dest: String?
