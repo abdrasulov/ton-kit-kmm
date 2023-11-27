@@ -90,5 +90,7 @@ class Syncer(
     fun stop() {
         connectionManager.stop()
         coroutineScope.cancel()
+        _balanceSyncStateFlow.update { SyncState.NotSynced(SyncError.NotStarted()) }
+        _transactionsSyncStateFlow.update { SyncState.NotSynced(SyncError.NotStarted()) }
     }
 }
