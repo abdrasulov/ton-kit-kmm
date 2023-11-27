@@ -12,7 +12,6 @@ import org.ton.bigint.toBigInt
 import org.ton.bitstring.BitString
 import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
-import org.ton.block.CommonMsgInfo
 import org.ton.block.CurrencyCollection
 import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
@@ -82,42 +81,26 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         val outMsgs = txAux.outMsgs
 
         val transactionType: TransactionType
-        val msgInfo: CommonMsgInfo?
-        val collectMsgFees: Boolean
-        when {
-            outMsgs.count() == 1 -> {
-                val outMsgInfo = outMsgs.first().second.value.info
-                msgInfo = outMsgInfo
-                transactionType = TransactionType.Outgoing
-                collectMsgFees = true
-            }
-
-            inMsgInfo != null -> {
-                msgInfo = inMsgInfo
-                transactionType = TransactionType.Incoming
-                collectMsgFees = false
-            }
-
-            else -> {
-                msgInfo = null
-                transactionType = TransactionType.Unknown
-                collectMsgFees = true
-            }
-        }
-
         var value: CurrencyCollection? = null
         var src: MsgAddressInt? = null
         var dest: MsgAddressInt? = null
         var msgFees: BigInt = 0.toBigInt()
 
-        if (msgInfo is IntMsgInfo) {
-            value = msgInfo.value
-            src = msgInfo.src
-            dest = msgInfo.dest
+        val firstOutMsgInfo = outMsgs.firstOrNull()?.second?.value?.info
 
-            if (collectMsgFees) {
-                msgFees = msgInfo.fwd_fee.amount.value + msgInfo.ihr_fee.amount.value
-            }
+        if (outMsgs.count() == 1 && firstOutMsgInfo is IntMsgInfo) {
+            transactionType = TransactionType.Outgoing
+            value = firstOutMsgInfo.value
+            src = firstOutMsgInfo.src
+            dest = firstOutMsgInfo.dest
+            msgFees = firstOutMsgInfo.fwd_fee.amount.value + firstOutMsgInfo.ihr_fee.amount.value
+        } else if (inMsgInfo is IntMsgInfo) {
+            transactionType = TransactionType.Incoming
+            value = inMsgInfo.value
+            src = inMsgInfo.src
+            dest = inMsgInfo.dest
+        } else {
+            transactionType = TransactionType.Unknown
         }
 
         return TonTransaction(
