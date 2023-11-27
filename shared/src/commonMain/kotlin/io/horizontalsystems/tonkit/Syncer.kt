@@ -3,8 +3,8 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
-import kotlinx.coroutines.cancel
 import kotlinx.coroutines.cancelAndJoin
+import kotlinx.coroutines.cancelChildren
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -89,7 +89,8 @@ class Syncer(
 
     fun stop() {
         connectionManager.stop()
-        coroutineScope.cancel()
+        // to use coroutineScope afterwards we should cancel only its children
+        coroutineScope.coroutineContext.cancelChildren()
         _balanceSyncStateFlow.update { SyncState.NotSynced(SyncError.NotStarted()) }
         _transactionsSyncStateFlow.update { SyncState.NotSynced(SyncError.NotStarted()) }
     }

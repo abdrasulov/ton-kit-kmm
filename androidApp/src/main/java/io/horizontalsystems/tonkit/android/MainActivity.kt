@@ -176,18 +176,18 @@ fun BalanceScreen(viewModel: MainViewModel, uiState: MainUiState) {
 
         Button(
             onClick = {
-                viewModel.resume()
+                viewModel.start()
             }
         ) {
-            Text(text = "Resume")
+            Text(text = "start")
         }
 
         Button(
             onClick = {
-                viewModel.pause()
+                viewModel.stop()
             }
         ) {
-            Text(text = "Pause")
+            Text(text = "Stop")
         }
     }
 }

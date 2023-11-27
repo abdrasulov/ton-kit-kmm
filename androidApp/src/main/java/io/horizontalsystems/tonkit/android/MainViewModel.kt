@@ -144,12 +144,12 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
     }
 
-    fun resume() {
-        tonKit.resume()
+    fun start() {
+        tonKit.start()
     }
 
-    fun pause() {
-        tonKit.pause()
+    fun stop() {
+        tonKit.stop()
     }
 }
 

@@ -1,9 +1,5 @@
 package io.horizontalsystems.tonkit
 
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.cancel
-import kotlinx.coroutines.launch
 import org.ton.block.AddrStd
 
 class TonKit(
@@ -25,25 +21,12 @@ class TonKit(
     val transactionsSyncState: SyncState
         get() = transactionsSyncStateFlow.value
 
-    private val coroutineScope = CoroutineScope(Dispatchers.Default)
-
     fun start() {
         syncer.start()
     }
 
     fun stop() {
-        coroutineScope.cancel()
         syncer.stop()
-    }
-
-    fun pause() {
-        coroutineScope.launch {
-            syncer.cancelSyncer(SyncError.NotStarted())
-        }
-    }
-
-    fun resume() {
-        syncer.runSyncer()
     }
 
     suspend fun send(recipient: String, amount: String) {
