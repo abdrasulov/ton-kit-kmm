@@ -7,6 +7,8 @@ import androidx.activity.compose.setContent
 import androidx.compose.animation.Crossfade
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.itemsIndexed
@@ -169,6 +171,24 @@ fun BalanceScreen(viewModel: MainViewModel, uiState: MainUiState) {
         Text(text = "Balance: ${uiState.balance}")
         Text(text = "Sync State: ${uiState.syncState.toStr()}")
         Text(text = "Tx Sync State: ${uiState.txSyncState.toStr()}")
+
+        Spacer(modifier = Modifier.height(20.dp))
+
+        Button(
+            onClick = {
+                viewModel.resume()
+            }
+        ) {
+            Text(text = "Resume")
+        }
+
+        Button(
+            onClick = {
+                viewModel.pause()
+            }
+        ) {
+            Text(text = "Pause")
+        }
     }
 }
 

@@ -143,6 +143,14 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             }
         }
     }
+
+    fun resume() {
+        tonKit.resume()
+    }
+
+    fun pause() {
+        tonKit.pause()
+    }
 }
 
 data class MainUiState(

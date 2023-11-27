@@ -36,27 +36,27 @@ class Syncer(
                 if (isConnected) {
                     runSyncer()
                 } else {
-                    cancelSyncer()
+                    cancelSyncer(SyncError.NoNetworkConnection())
                 }
             }
         }
         connectionManager.start()
     }
 
-    private suspend fun cancelSyncer() {
+    suspend fun cancelSyncer(reason: Throwable) {
         syncerJob?.cancelAndJoin()
         balanceSyncerJob?.cancelAndJoin()
         transactionSyncerJob?.cancelAndJoin()
 
         _balanceSyncStateFlow.update {
-            SyncState.NotSynced(SyncError.NoNetworkConnection())
+            SyncState.NotSynced(reason)
         }
         _transactionsSyncStateFlow.update {
-            SyncState.NotSynced(SyncError.NoNetworkConnection())
+            SyncState.NotSynced(reason)
         }
     }
 
-    private fun runSyncer() {
+    fun runSyncer() {
         syncerJob = coroutineScope.launch {
             // TON generates a new block on each shardchain and the masterchain approximately every 5 seconds
             tickerFlow(5.seconds).collect {

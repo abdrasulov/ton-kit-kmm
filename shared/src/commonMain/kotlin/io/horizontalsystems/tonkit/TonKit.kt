@@ -3,6 +3,7 @@ package io.horizontalsystems.tonkit
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.launch
 import org.ton.block.AddrStd
 
 class TonKit(
@@ -33,6 +34,16 @@ class TonKit(
     fun stop() {
         coroutineScope.cancel()
         syncer.stop()
+    }
+
+    fun pause() {
+        coroutineScope.launch {
+            syncer.cancelSyncer(SyncError.NotStarted())
+        }
+    }
+
+    fun resume() {
+        syncer.runSyncer()
     }
 
     suspend fun send(recipient: String, amount: String) {
