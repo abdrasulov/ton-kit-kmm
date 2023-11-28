@@ -29,6 +29,7 @@ class TonKit(
         syncer.stop()
     }
 
+    @Throws(Throwable::class)
     suspend fun send(recipient: String, amount: String) {
         checkNotNull(transactionSender) {
             "Sending is not available for watch account"
@@ -42,7 +43,7 @@ class TonKit(
     }
 
     companion object {
-        @Throws(Exception::class)
+        @Throws(Throwable::class)
         fun validate(address: String) {
             AddrStd.parse(address)
         }
