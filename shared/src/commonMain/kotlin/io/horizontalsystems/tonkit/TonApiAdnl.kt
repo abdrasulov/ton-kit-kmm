@@ -130,7 +130,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
             timestamp = info.transaction.value.now.toLong(),
             amount = amount?.toString(10),
             fee = fee.toString(10),
-            type = transactionType.name,
+            type = transactionType,
             transfersJson = Json.encodeToString(transfers)
         )
     }

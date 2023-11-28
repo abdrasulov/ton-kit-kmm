@@ -41,13 +41,13 @@ class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
         limit: Long,
     ): List<TonTransaction> {
         if (fromTransactionHash == null) {
-            return transactionQuery.getAllByType(type = type.name, limit = limit).executeAsList()
+            return transactionQuery.getAllByType(type = type, limit = limit).executeAsList()
         } else {
             val fromTransaction = transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
             return transactionQuery.selectEarlierThanByType(
                 timestamp = fromTransaction.timestamp,
                 lt = fromTransaction.lt,
-                type = type.name,
+                type = type,
                 limit = limit
             ).executeAsList()
         }
