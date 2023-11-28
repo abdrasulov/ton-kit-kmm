@@ -14,29 +14,6 @@ insert:
 INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, amount, fee, type, transfersJson)
 VALUES (?, ?, ?, ?, ?, ?, ?);
 
-selectEarliest:
-SELECT *
-FROM TonTransaction
-ORDER BY timestamp ASC
-LIMIT 0, 1;
-
-selectLatest:
-SELECT *
-FROM TonTransaction
-ORDER BY timestamp DESC
-LIMIT 0, 1;
-
-selectByHash:
-SELECT *
-FROM TonTransaction
-WHERE hash = ?;
-
-selectAll:
-SELECT *
-FROM TonTransaction
-ORDER BY timestamp DESC
-LIMIT 0, ?;
-
 getLatest:
 SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, 1;
 
@@ -52,8 +29,8 @@ SELECT * FROM TonTransaction WHERE type = :type ORDER BY timestamp DESC, lt DESC
 getByHash:
 SELECT * FROM TonTransaction WHERE hash = :hash;
 
-selectEarlierThan:
+getEarlierThan:
 SELECT * FROM TonTransaction WHERE timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
 
-selectEarlierThanByType:
+getEarlierThanByType:
 SELECT * FROM TonTransaction WHERE type = :type AND timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
