@@ -4,9 +4,12 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
+import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.ton.api.liteclient.config.LiteClientConfigGlobal
+import org.ton.bigint.BigInt
 import org.ton.bigint.plus
+import org.ton.bigint.toBigInt
 import org.ton.bitstring.BitString
 import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
@@ -74,30 +77,61 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
         val txAux = info.transaction.value.r1.value
 
-        val outIntMsgInfo = txAux.outMsgs.singleOrNull()?.second?.value?.info as? IntMsgInfo
-        val inIntMsgInfo = txAux.inMsg.value?.value?.info as? IntMsgInfo
-        val intMsgInfo = outIntMsgInfo ?: inIntMsgInfo
-
-        val transactionType = when {
-            outIntMsgInfo != null -> TransactionType.Outgoing
-            inIntMsgInfo != null -> TransactionType.Incoming
-            else -> TransactionType.Unknown
-        }
-
+        val transactionType: TransactionType
+        val amount: BigInt?
         var fee = info.transaction.value.totalFees.coins.amount.value
-        if (outIntMsgInfo != null) {
-            fee += outIntMsgInfo.fwd_fee.amount.value + outIntMsgInfo.ihr_fee.amount.value
+        val transfers = mutableListOf<Transfer>()
+
+        val outIntMsgInfoList = txAux.outMsgs.mapNotNull { (_, messageCellRef) ->
+            messageCellRef.value.info as? IntMsgInfo
+        }
+        val inIntMsgInfo = txAux.inMsg.value?.value?.info as? IntMsgInfo
+
+        if (outIntMsgInfoList.isNotEmpty()) {
+            var transferAmountsSum = 0.toBigInt()
+            var transferFeesSum = 0.toBigInt()
+            outIntMsgInfoList.forEach { msgInfo ->
+                val transferAmount = msgInfo.value.coins.amount.value
+                transfers.add(
+                    Transfer(
+                        src = MsgAddressInt.toString(msgInfo.src, bounceable = false),
+                        dest = MsgAddressInt.toString(msgInfo.dest, bounceable = false),
+                        amount = transferAmount.toString(10),
+                    )
+                )
+
+                transferAmountsSum += transferAmount
+                transferFeesSum += msgInfo.fwd_fee.amount.value + msgInfo.ihr_fee.amount.value
+            }
+
+            fee += transferFeesSum
+            amount = transferAmountsSum
+            transactionType = TransactionType.Outgoing
+        } else if (inIntMsgInfo != null) {
+            val transferAmount = inIntMsgInfo.value.coins.amount.value
+            transfers.add(
+                Transfer(
+                    src = MsgAddressInt.toString(inIntMsgInfo.src, bounceable = false),
+                    dest = MsgAddressInt.toString(inIntMsgInfo.dest, bounceable = false),
+                    amount = transferAmount.toString(10),
+                )
+            )
+
+            amount = transferAmount
+            transactionType = TransactionType.Incoming
+        } else {
+            amount = null
+            transactionType = TransactionType.Unknown
         }
 
         return TonTransaction(
             hash = info.id.hash.toHex(),
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
-            value_ = intMsgInfo?.value?.coins?.amount?.value?.toString(10),
+            amount = amount?.toString(10),
             fee = fee.toString(10),
             type = transactionType.name,
-            src = intMsgInfo?.src?.let { MsgAddressInt.toString(it, bounceable = false) },
-            dest = intMsgInfo?.dest?.let { MsgAddressInt.toString(it, bounceable = false) },
+            transfersJson = Json.encodeToString(transfers)
         )
     }
 

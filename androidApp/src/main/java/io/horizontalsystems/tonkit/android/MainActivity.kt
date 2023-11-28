@@ -35,6 +35,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import io.horizontalsystems.tonkit.TonTransaction
+import io.horizontalsystems.tonkit.transfers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -208,7 +209,7 @@ fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Uni
             Column(modifier = Modifier.padding(vertical = 8.dp)) {
                 val date = DateFormat.format("yyyy-MM-dd hh:mm:ss a", it.timestamp * 1000)
                 val decimals = 9
-                val value_ = it.value_?.let {
+                val value_ = it.amount?.let {
                     BigDecimal(it.toBigInteger(), decimals)
                 }
                 val fee = it.fee?.let {
@@ -218,12 +219,22 @@ fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Uni
                 Text(text = "# $i")
                 Text(text = "Hash: ${it.hash}")
                 Text(text = "Type: ${it.type}")
-                Text(text = "Value: ${value_?.toPlainString()}")
-                Text(text = "From: ${it.src}")
-                Text(text = "To: ${it.dest}")
                 Text(text = "Date: $date")
                 Text(text = "LT: ${it.lt}")
                 Text(text = "Fee: ${fee?.toPlainString()}")
+
+                Text(text = "Value: ${value_?.toPlainString()}")
+                Text(text = "TRANSFERS")
+                it.transfers.forEach {
+                    val value = BigDecimal(it.amount.toBigInteger(), decimals)
+
+                    Column(modifier = Modifier.padding(start = 8.dp)) {
+                        Text(text = "From: ${it.src}")
+                        Text(text = "To: ${it.dest}")
+                        Text(text = "Value: ${value.toPlainString()}")
+                    }
+                }
+
             }
             Divider()
         }
