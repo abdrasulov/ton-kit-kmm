@@ -30,6 +30,15 @@ class TonKit(
     }
 
     @Throws(Throwable::class)
+    suspend fun estimateFee(): String {
+        checkNotNull(transactionSender) {
+            "Sending is not available for watch account"
+        }
+
+        return transactionSender.estimateFee()
+    }
+
+    @Throws(Throwable::class)
     suspend fun send(recipient: String, amount: String) {
         checkNotNull(transactionSender) {
             "Sending is not available for watch account"

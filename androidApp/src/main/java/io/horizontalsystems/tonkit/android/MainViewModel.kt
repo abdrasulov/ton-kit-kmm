@@ -20,8 +20,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private val passphrase = ""
     private val watchAddress = "UQBpAeJL-VSLCigCsrgGQHCLeiEBdAuZBlbrrUGI4BVQJoPM"
 
-//    private val tonKit = TonKitFactory(DriverFactory(getApplication())).create(words, passphrase, "used")
-    private val tonKit = TonKitFactory(DriverFactory(getApplication()), ConnectionManager(getApplication())).createWatch(watchAddress, "watch")
+    val tonKitFactory = TonKitFactory(DriverFactory(getApplication()), ConnectionManager(getApplication()))
+//    private val tonKit = tonKitFactory.create(words, passphrase, words.first())
+    private val tonKit = tonKitFactory.createWatch(watchAddress, "watch")
 
     val address = tonKit.receiveAddress
 
@@ -38,6 +39,9 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             transactionList = transactionList
         )
     )
+        private set
+
+    var fee: String? by mutableStateOf(null)
         private set
 
     init {
@@ -59,11 +63,27 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
         }
 
         loadNextTransactionsPage()
+        refreshFee()
 
         viewModelScope.launch(Dispatchers.IO) {
             tonKit.newTransactionsFlow.collect {
                 transactionList = null
                 loadNextTransactionsPage()
+                refreshFee()
+            }
+        }
+    }
+
+    private fun refreshFee() {
+        viewModelScope.launch(Dispatchers.IO) {
+            val estimateFee = try {
+                tonKit.estimateFee()
+            } catch (e: Throwable) {
+                e.message
+            }
+
+            viewModelScope.launch {
+                fee = estimateFee
             }
         }
     }
@@ -131,7 +151,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
             sendResult = ""
             sendResult = try {
                 val sendRecipient = sendRecipient
-                val sendAmount = sendAmount
+                val sendAmount = sendAmount?.movePointRight(9)?.toBigInteger()
                 checkNotNull(sendRecipient)
                 checkNotNull(sendAmount)
 

@@ -28,4 +28,18 @@ class TransactionSender(
             bounceable = false
         })
     }
+
+    suspend fun estimateFee(): String {
+        val fullAccountState = adnl.getFullAccountState()
+        val accountInfo = fullAccountState.account.value as? AccountInfo
+
+        val fee = when {
+            accountInfo == null -> 0
+            accountInfo.isActive -> 7000000
+            accountInfo.isUninit -> 15000000
+            else -> 0
+        }
+
+        return fee.toString()
+    }
 }

@@ -116,6 +116,8 @@ fun SendScreen(viewModel: MainViewModel, uiState: MainUiState) {
         var amountStr by remember { mutableStateOf("") }
         var recipientStr by remember { mutableStateOf("") }
 
+        Text(text = "Fee: ${viewModel.fee}")
+
         Text(
             modifier = Modifier.clickable {
                 uiState.balance?.let {
