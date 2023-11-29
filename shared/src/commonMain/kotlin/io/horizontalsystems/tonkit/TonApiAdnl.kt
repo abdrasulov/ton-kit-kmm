@@ -32,8 +32,8 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     private var liteClient: LiteClient? = null
 
     suspend fun getBalance(): String? {
-        val fullAccountState = getFullAccountState()
-        val account = fullAccountState.account.value
+        val fullAccountState = getFullAccountStateOrNull()
+        val account = fullAccountState?.account?.value
         return if (account is AccountInfo) {
             account.storage.balance.coins.amount.value.toString(10)
         } else {
@@ -44,7 +44,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     suspend fun transactions(transactionHash: String?, lt: Long?, limit: Int): List<TonTransaction> {
         val transactionId = when {
             transactionHash != null && lt != null -> TransactionId(BitString(transactionHash), lt)
-            else -> getFullAccountState().lastTransactionId
+            else -> getFullAccountStateOrNull()?.lastTransactionId
         } ?: return listOf()
 
         val transactions = getLiteClient().getTransactionsWithAttempts(addrStd, transactionId, limit)
@@ -70,8 +70,10 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         }
     }
 
-    suspend fun getFullAccountState(): FullAccountState {
-        return getLiteClient().getAccountState(addrStd)
+    suspend fun getFullAccountStateOrNull(): FullAccountState? = try {
+        getLiteClient().getAccountState(addrStd)
+    } catch (e: Throwable) {
+        null
     }
 
     private fun createTonTransaction(info: TransactionInfo): TonTransaction {
@@ -136,7 +138,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
     }
 
     suspend fun getLatestTransactionHash(): String? {
-        return getFullAccountState().lastTransactionId?.hash?.toHex()
+        return getFullAccountStateOrNull()?.lastTransactionId?.hash?.toHex()
     }
 
     suspend fun getLiteApi(): LiteApi {

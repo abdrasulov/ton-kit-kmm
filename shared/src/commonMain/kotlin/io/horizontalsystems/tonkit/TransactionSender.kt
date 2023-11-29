@@ -15,8 +15,8 @@ class TransactionSender(
     suspend fun send(recipient: String, amount: String) {
         val liteApi = adnl.getLiteApi()
 
-        val fullAccountState = adnl.getFullAccountState()
-        val wallet = (fullAccountState.account.value as? AccountInfo)?.let {
+        val fullAccountState = adnl.getFullAccountStateOrNull()
+        val wallet = (fullAccountState?.account?.value as? AccountInfo)?.let {
             WalletV4R2Contract(it)
         }
 
@@ -30,8 +30,8 @@ class TransactionSender(
     }
 
     suspend fun estimateFee(): String {
-        val fullAccountState = adnl.getFullAccountState()
-        val accountInfo = fullAccountState.account.value as? AccountInfo
+        val fullAccountState = adnl.getFullAccountStateOrNull()
+        val accountInfo = fullAccountState?.account?.value as? AccountInfo
 
         val fee = when {
             accountInfo == null -> 0
