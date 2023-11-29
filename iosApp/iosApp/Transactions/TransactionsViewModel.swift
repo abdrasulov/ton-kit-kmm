@@ -35,11 +35,15 @@ class TransactionsViewModel: ObservableObject {
                 hash: tx.hash,
                 lt: Int(tx.lt),
                 timestamp: Int(tx.timestamp),
-                value: tx.value_.map { Singleton.amount(kitAmount: $0) },
                 fee: tx.fee.map { Singleton.amount(kitAmount: $0) },
-                type: tx.type,
-                src: tx.src,
-                dest: tx.dest
+                type: tx.type.description(),
+                transfers: tx.transfers.map { kitTransfer in
+                    Transaction.Transfer(
+                        src: kitTransfer.src,
+                        dest: kitTransfer.dest,
+                        amount: Singleton.amount(kitAmount: kitTransfer.amount)
+                    )
+                }
             )
         }
 
@@ -51,9 +55,13 @@ struct Transaction {
     let hash: String
     let lt: Int
     let timestamp: Int
-    let value: Decimal?
     let fee: Decimal?
     let type: String
-    let src: String?
-    let dest: String?
+    let transfers: [Transfer]
+
+    struct Transfer {
+        let src: String
+        let dest: String
+        let amount: Decimal
+    }
 }
