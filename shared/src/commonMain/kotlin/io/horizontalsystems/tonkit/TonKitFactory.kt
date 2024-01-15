@@ -2,7 +2,6 @@ package io.horizontalsystems.tonkit
 
 import org.ton.api.pk.PrivateKeyEd25519
 import org.ton.block.AddrStd
-import org.ton.block.AddrVar
 import org.ton.block.MsgAddressInt
 import org.ton.contract.wallet.WalletV4R2Contract
 import org.ton.mnemonic.Mnemonic
@@ -14,15 +13,10 @@ class TonKitFactory(private val driverFactory: DriverFactory, private val connec
 
     fun create(seed: ByteArray, walletId: String): TonKit {
         val privateKey = PrivateKeyEd25519(seed)
-        val publicKey = privateKey.publicKey()
-        val wallet = WalletV4R2Contract(0, publicKey)
-        val address = wallet.address
+        val address = WalletV4R2Contract.address(privateKey, 0)
         val receiveAddress = MsgAddressInt.toString(address, bounceable = false)
 
-        val adnl = when (address) {
-            is AddrStd -> TonApiAdnl(address)
-            is AddrVar -> null
-        }
+        val adnl = TonApiAdnl(address)
 
         checkNotNull(adnl)
 

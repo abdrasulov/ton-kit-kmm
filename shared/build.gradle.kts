@@ -37,7 +37,8 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 //put your multiplatform dependencies here
-                implementation(libs.ton.kotlin)
+                implementation(libs.ton.kotlin.adnl)
+                implementation(libs.ton.kotlin.contract)
                 implementation(libs.ktor.client.core)
                 implementation(libs.kotlinx.coroutines.core)
             }

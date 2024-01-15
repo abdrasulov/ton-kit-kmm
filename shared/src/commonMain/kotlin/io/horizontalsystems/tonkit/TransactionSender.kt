@@ -13,16 +13,11 @@ class TransactionSender(
     private val privateKey: PrivateKeyEd25519,
 ) {
     suspend fun send(recipient: String, amount: String) {
-        val liteApi = adnl.getLiteApi()
-
-        val fullAccountState = adnl.getFullAccountStateOrNull()
-        val wallet = (fullAccountState?.account?.value as? AccountInfo)?.let {
-            WalletV4R2Contract(it)
-        }
+        val wallet = WalletV4R2Contract(adnl.getLiteClient(), adnl.addrStd)
 
         checkNotNull(wallet)
 
-        wallet.transfer(liteApi, privateKey, WalletTransfer {
+        wallet.transfer(privateKey, WalletTransfer {
             destination = MsgAddressInt.parseUserFriendly(recipient)
             coins = Coins.ofNano(BigInt(amount))
             bounceable = false

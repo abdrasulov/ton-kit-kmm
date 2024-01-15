@@ -15,14 +15,13 @@ import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
-import org.ton.lite.api.LiteApi
 import org.ton.lite.api.exception.LiteServerUnknownException
 import org.ton.lite.client.LiteClient
 import org.ton.lite.client.internal.FullAccountState
 import org.ton.lite.client.internal.TransactionId
 import org.ton.lite.client.internal.TransactionInfo
 
-class TonApiAdnl(private val addrStd: AddrStd) {
+class TonApiAdnl(val addrStd: AddrStd) {
     private val httpClient = HttpClient()
 
     private val json = Json {
@@ -141,11 +140,7 @@ class TonApiAdnl(private val addrStd: AddrStd) {
         return getFullAccountStateOrNull()?.lastTransactionId?.hash?.toHex()
     }
 
-    suspend fun getLiteApi(): LiteApi {
-        return getLiteClient().liteApi
-    }
-
-    private suspend fun getLiteClient(): LiteClient {
+    suspend fun getLiteClient(): LiteClient {
         liteClient?.let {
             return it
         }

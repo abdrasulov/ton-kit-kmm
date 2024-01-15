@@ -9,7 +9,7 @@ kotlinxCoroutinesCore = "1.7.3"
 ktor = "2.3.5"
 lifecycleViewmodelCompose = "2.6.2"
 sqlDelight = "2.0.0"
-tonKotlin = "0.2.16"
+tonKotlin = "0.3.0"
 
 [libraries]
 androidx-lifecycle-viewmodel-compose = { module = "androidx.lifecycle:lifecycle-viewmodel-compose", version.ref = "lifecycleViewmodelCompose" }
@@ -26,7 +26,8 @@ ktor-client-darwin = { module = "io.ktor:ktor-client-darwin", version.ref = "kto
 ktor-client-okhttp = { module = "io.ktor:ktor-client-okhttp", version.ref = "ktor" }
 sqldelight-android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "sqlDelight" }
 sqldelight-native-driver = { module = "app.cash.sqldelight:native-driver", version.ref = "sqlDelight" }
-ton-kotlin = { module = "org.ton:ton-kotlin", version.ref = "tonKotlin" }
+ton-kotlin-adnl = { module = "org.ton:ton-kotlin-adnl", version.ref = "tonKotlin" }
+ton-kotlin-contract = { module = "org.ton:ton-kotlin-contract", version.ref = "tonKotlin" }
 
 [plugins]
 androidApplication = { id = "com.android.application", version.ref = "agp" }
