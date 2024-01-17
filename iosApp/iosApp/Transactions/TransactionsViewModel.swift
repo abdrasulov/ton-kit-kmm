@@ -36,6 +36,7 @@ class TransactionsViewModel: ObservableObject {
                 lt: Int(tx.lt),
                 timestamp: Int(tx.timestamp),
                 fee: tx.fee.map { Singleton.amount(kitAmount: $0) },
+                memo: tx.memo,
                 type: tx.type.description(),
                 transfers: tx.transfers.map { kitTransfer in
                     Transaction.Transfer(
@@ -56,6 +57,7 @@ struct Transaction {
     let lt: Int
     let timestamp: Int
     let fee: Decimal?
+    let memo: String?
     let type: String
     let transfers: [Transfer]
 

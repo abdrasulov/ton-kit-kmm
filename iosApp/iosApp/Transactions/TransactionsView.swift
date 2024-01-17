@@ -9,6 +9,7 @@ struct TransactionsView: View {
                 row(title: "Hash", value: transaction.hash)
                 row(title: "Type", value: transaction.type)
                 row(title: "Fee", value: transaction.fee?.description ?? "n/a")
+                row(title: "Memo", value: transaction.memo ?? "n/a")
                 row(title: "Timestamp", value: String(transaction.timestamp))
                 row(title: "Lt", value: String(transaction.lt))
 
