@@ -5,6 +5,7 @@ import org.ton.bigint.BigInt
 import org.ton.block.AccountInfo
 import org.ton.block.Coins
 import org.ton.block.MsgAddressInt
+import org.ton.contract.wallet.MessageData
 import org.ton.contract.wallet.WalletTransfer
 import org.ton.contract.wallet.WalletV4R2Contract
 
@@ -12,7 +13,7 @@ class TransactionSender(
     private val adnl: TonApiAdnl,
     private val privateKey: PrivateKeyEd25519,
 ) {
-    suspend fun send(recipient: String, amount: String) {
+    suspend fun send(recipient: String, amount: String, memo: String?) {
         val wallet = WalletV4R2Contract(adnl.getLiteClient(), adnl.addrStd)
 
         checkNotNull(wallet)
@@ -21,6 +22,9 @@ class TransactionSender(
             destination = MsgAddressInt.parseUserFriendly(recipient)
             coins = Coins.ofNano(BigInt(amount))
             bounceable = false
+            memo?.let {
+                messageData = MessageData.text(it)
+            }
         })
     }
 

@@ -39,12 +39,12 @@ class TonKit(
     }
 
     @Throws(Throwable::class)
-    suspend fun send(recipient: String, amount: String) {
+    suspend fun send(recipient: String, amount: String, memo: String? = null) {
         checkNotNull(transactionSender) {
             "Sending is not available for watch account"
         }
 
-        transactionSender.send(recipient, amount)
+        transactionSender.send(recipient, amount, memo)
     }
 
     suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {

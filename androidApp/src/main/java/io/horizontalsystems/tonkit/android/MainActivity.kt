@@ -226,6 +226,7 @@ fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Uni
                 Text(text = "Fee: ${fee?.toPlainString()}")
 
                 Text(text = "Value: ${value_?.toPlainString()}")
+                Text(text = "Memo: ${it.memo}")
                 Text(text = "TRANSFERS")
                 it.transfers.forEach {
                     val value = BigDecimal(it.amount.toBigInteger(), decimals)

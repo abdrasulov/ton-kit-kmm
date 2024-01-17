@@ -15,6 +15,7 @@ import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.block.IntMsgInfo
 import org.ton.block.MsgAddressInt
+import org.ton.contract.wallet.MessageText
 import org.ton.lite.api.exception.LiteServerUnknownException
 import org.ton.lite.client.LiteClient
 import org.ton.lite.client.internal.FullAccountState
@@ -86,6 +87,19 @@ class TonApiAdnl(val addrStd: AddrStd) {
         val outIntMsgInfoList = txAux.outMsgs.mapNotNull { (_, messageCellRef) ->
             messageCellRef.value.info as? IntMsgInfo
         }
+
+        val outMemoMsg = txAux.outMsgs.mapNotNull { (hash, cell) ->
+            val outMsgBody = cell.value.body.let {
+                requireNotNull(it.x ?: it.y?.value) { "Body for message $hash is empty!" }
+            }
+
+            try {
+                MessageText.loadTlb(outMsgBody) as? MessageText.Raw
+            } catch (e: Exception) {
+                null
+            }
+        }.firstOrNull()
+
         val inIntMsgInfo = txAux.inMsg.value?.value?.info as? IntMsgInfo
 
         if (outIntMsgInfoList.isNotEmpty()) {
@@ -130,6 +144,7 @@ class TonApiAdnl(val addrStd: AddrStd) {
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
             amount = amount?.toString(10),
+            memo = outMemoMsg?.text,
             fee = fee.toString(10),
             type = transactionType,
             transfersJson = Json.encodeToString(transfers)
