@@ -14,13 +14,16 @@ import org.ton.bitstring.BitString
 import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.block.IntMsgInfo
+import org.ton.block.Message
 import org.ton.block.MsgAddressInt
+import org.ton.cell.Cell
 import org.ton.contract.wallet.MessageText
 import org.ton.lite.api.exception.LiteServerUnknownException
 import org.ton.lite.client.LiteClient
 import org.ton.lite.client.internal.FullAccountState
 import org.ton.lite.client.internal.TransactionId
 import org.ton.lite.client.internal.TransactionInfo
+import org.ton.tlb.CellRef
 
 class TonApiAdnl(val addrStd: AddrStd) {
     private val httpClient = HttpClient()
@@ -81,24 +84,13 @@ class TonApiAdnl(val addrStd: AddrStd) {
 
         val transactionType: TransactionType
         val amount: BigInt?
+        val memo: String?
         var fee = info.transaction.value.totalFees.coins.amount.value
         val transfers = mutableListOf<Transfer>()
 
         val outIntMsgInfoList = txAux.outMsgs.mapNotNull { (_, messageCellRef) ->
             messageCellRef.value.info as? IntMsgInfo
         }
-
-        val outMemoMsg = txAux.outMsgs.mapNotNull { (hash, cell) ->
-            val outMsgBody = cell.value.body.let {
-                requireNotNull(it.x ?: it.y?.value) { "Body for message $hash is empty!" }
-            }
-
-            try {
-                MessageText.loadTlb(outMsgBody) as? MessageText.Raw
-            } catch (e: Exception) {
-                null
-            }
-        }.firstOrNull()
 
         val inIntMsgInfo = txAux.inMsg.value?.value?.info as? IntMsgInfo
 
@@ -121,6 +113,9 @@ class TonApiAdnl(val addrStd: AddrStd) {
 
             fee += transferFeesSum
             amount = transferAmountsSum
+            memo = txAux.outMsgs.firstNotNullOfOrNull { (_, cellRef) ->
+                parseMemo(cellRef)
+            }
             transactionType = TransactionType.Outgoing
         } else if (inIntMsgInfo != null) {
             val transferAmount = inIntMsgInfo.value.coins.amount.value
@@ -133,9 +128,11 @@ class TonApiAdnl(val addrStd: AddrStd) {
             )
 
             amount = transferAmount
+            memo = txAux.inMsg.value?.let { parseMemo(it) }
             transactionType = TransactionType.Incoming
         } else {
             amount = null
+            memo = null
             transactionType = TransactionType.Unknown
         }
 
@@ -144,11 +141,27 @@ class TonApiAdnl(val addrStd: AddrStd) {
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
             amount = amount?.toString(10),
-            memo = outMemoMsg?.text,
+            memo = memo,
             fee = fee.toString(10),
             type = transactionType,
             transfersJson = Json.encodeToString(transfers)
         )
+    }
+
+    private fun parseMemo(cellRef: CellRef<Message<Cell>>): String? {
+        val cell = cellRef.value.body.let {
+            it.x ?: it.y?.value
+        }
+
+        val messageText = cell?.let {
+            try {
+                MessageText.loadTlb(cell) as? MessageText.Raw
+            } catch (e: Exception) {
+                null
+            }
+        }
+
+        return messageText?.text
     }
 
     suspend fun getLatestTransactionHash(): String? {
