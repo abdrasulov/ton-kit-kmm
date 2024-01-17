@@ -63,7 +63,8 @@ class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
                     transaction.amount,
                     transaction.fee,
                     transaction.type,
-                    transaction.transfersJson
+                    transaction.transfersJson,
+                    transaction.memo
                 )
             }
         }

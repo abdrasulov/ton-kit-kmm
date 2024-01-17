@@ -149,17 +149,19 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     fun send() {
         viewModelScope.launch(Dispatchers.Default) {
             sendResult = ""
-            sendResult = try {
+            try {
                 val sendRecipient = sendRecipient
                 val sendAmount = sendAmount?.movePointRight(9)?.toBigInteger()
                 checkNotNull(sendRecipient)
                 checkNotNull(sendAmount)
 
-                tonKit.send(sendRecipient, sendAmount.toString())
+                sendResult = "Sending..."
 
-                "Send success"
+                tonKit.send(sendRecipient, sendAmount.toString(), "Test transaction")
+
+                sendResult = "Send success"
             } catch (t: Throwable) {
-                "Send error: $t"
+                sendResult = "Send error: $t"
             }
         }
     }
