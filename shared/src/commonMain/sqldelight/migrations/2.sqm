@@ -1,0 +1,2 @@
+DELETE FROM TonTransaction;
+ALTER TABLE TonTransaction DROP COLUMN transfersJson;

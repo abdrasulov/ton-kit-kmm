@@ -93,7 +93,6 @@ class TransactionStorage(
                     transaction.amount,
                     transaction.fee,
                     transaction.type,
-                    "",
                     transaction.memo
                 )
 

@@ -7,13 +7,12 @@ CREATE TABLE TonTransaction (
     amount TEXT,
     fee TEXT,
     type TEXT AS TransactionType NOT NULL,
-    transfersJson TEXT NOT NULL,
     memo TEXT
 );
 
 insert:
-INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, amount, fee, type, transfersJson, memo)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO TonTransaction(hash, lt, timestamp, amount, fee, type, memo)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 getLatest:
 SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, 1;
