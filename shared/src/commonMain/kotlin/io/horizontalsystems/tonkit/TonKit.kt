@@ -47,7 +47,7 @@ class TonKit(
         transactionSender.send(recipient, amount, memo)
     }
 
-    suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {
+    suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransactionWithTransfers> {
         return transactionManager.transactions(fromTransactionHash, type, limit)
     }
 

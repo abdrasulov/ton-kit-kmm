@@ -10,8 +10,8 @@ class TransactionManager(
     private val storage: TransactionStorage
 ) {
 
-    private val _newTransactionsFlow = MutableSharedFlow<List<TonTransaction>>()
-    val newTransactionsFlow: Flow<List<TonTransaction>>
+    private val _newTransactionsFlow = MutableSharedFlow<List<TonTransactionWithTransfers>>()
+    val newTransactionsFlow: Flow<List<TonTransactionWithTransfers>>
         get() = _newTransactionsFlow.asSharedFlow()
 
     suspend fun sync() = flow {
@@ -77,8 +77,12 @@ class TransactionManager(
         }
     }
 
-    suspend fun transactions(fromTransactionHash: String?, type: TransactionType?, limit: Long): List<TonTransaction> {
-        return storage.getTransactions(fromTransactionHash, type, limit)
+    suspend fun transactions(
+        fromTransactionHash: String?,
+        type: TransactionType?,
+        limit: Long
+    ): List<TonTransactionWithTransfers> {
+        return storage.getTransactionsWithTransfers(fromTransactionHash, type, limit)
     }
 
 }

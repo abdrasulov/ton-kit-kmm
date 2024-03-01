@@ -34,8 +34,7 @@ import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
-import io.horizontalsystems.tonkit.TonTransaction
-import io.horizontalsystems.tonkit.transfers
+import io.horizontalsystems.tonkit.TonTransactionWithTransfers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
 
@@ -196,7 +195,7 @@ fun BalanceScreen(viewModel: MainViewModel, uiState: MainUiState) {
 }
 
 @Composable
-fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Unit) {
+fun Transactions(transactionList: List<TonTransactionWithTransfers>, onBottomReach: () -> Unit) {
     if (transactionList.isEmpty()) {
         Text(text = "No transactions")
     }
@@ -232,8 +231,8 @@ fun Transactions(transactionList: List<TonTransaction>, onBottomReach: () -> Uni
                     val value = BigDecimal(it.amount.toBigInteger(), decimals)
 
                     Column(modifier = Modifier.padding(start = 8.dp)) {
-                        Text(text = "From: ${it.src}")
-                        Text(text = "To: ${it.dest}")
+                        Text(text = "From: ${it.src.getNonBounceable()}")
+                        Text(text = "To: ${it.dest.getNonBounceable()}")
                         Text(text = "Value: ${value.toPlainString()}")
                     }
                 }

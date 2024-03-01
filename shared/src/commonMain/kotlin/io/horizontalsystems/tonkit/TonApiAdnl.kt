@@ -4,7 +4,6 @@ import io.ktor.client.HttpClient
 import io.ktor.client.request.get
 import io.ktor.client.statement.bodyAsText
 import kotlinx.coroutines.Dispatchers
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import org.ton.api.liteclient.config.LiteClientConfigGlobal
 import org.ton.bigint.BigInt
@@ -15,7 +14,6 @@ import org.ton.block.AccountInfo
 import org.ton.block.AddrStd
 import org.ton.block.IntMsgInfo
 import org.ton.block.Message
-import org.ton.block.MsgAddressInt
 import org.ton.cell.Cell
 import org.ton.contract.wallet.MessageText
 import org.ton.lite.api.exception.LiteServerUnknownException
@@ -44,7 +42,7 @@ class TonApiAdnl(val addrStd: AddrStd) {
         }
     }
 
-    suspend fun transactions(transactionHash: String?, lt: Long?, limit: Int): List<TonTransaction> {
+    suspend fun transactions(transactionHash: String?, lt: Long?, limit: Int): List<TonTransactionWithTransfers> {
         val transactionId = when {
             transactionHash != null && lt != null -> TransactionId(BitString(transactionHash), lt)
             else -> getFullAccountStateOrNull()?.lastTransactionId
@@ -79,14 +77,15 @@ class TonApiAdnl(val addrStd: AddrStd) {
         null
     }
 
-    private fun createTonTransaction(info: TransactionInfo): TonTransaction {
+    private fun createTonTransaction(info: TransactionInfo): TonTransactionWithTransfers {
+        val transactionHash = info.id.hash.toHex()
         val txAux = info.transaction.value.r1.value
 
         val transactionType: TransactionType
         val amount: BigInt?
         val memo: String?
         var fee = info.transaction.value.totalFees.coins.amount.value
-        val transfers = mutableListOf<Transfer>()
+        val transfers = mutableListOf<TonTransfer>()
 
         val outIntMsgInfoList = txAux.outMsgs.mapNotNull { (_, messageCellRef) ->
             messageCellRef.value.info as? IntMsgInfo
@@ -100,9 +99,10 @@ class TonApiAdnl(val addrStd: AddrStd) {
             outIntMsgInfoList.forEach { msgInfo ->
                 val transferAmount = msgInfo.value.coins.amount.value
                 transfers.add(
-                    Transfer(
-                        src = MsgAddressInt.toString(msgInfo.src, bounceable = false),
-                        dest = MsgAddressInt.toString(msgInfo.dest, bounceable = false),
+                    TonTransfer(
+                        transactionHash = transactionHash,
+                        src = TonAddress(msgInfo.src),
+                        dest = TonAddress(msgInfo.dest),
                         amount = transferAmount.toString(10),
                     )
                 )
@@ -120,9 +120,10 @@ class TonApiAdnl(val addrStd: AddrStd) {
         } else if (inIntMsgInfo != null) {
             val transferAmount = inIntMsgInfo.value.coins.amount.value
             transfers.add(
-                Transfer(
-                    src = MsgAddressInt.toString(inIntMsgInfo.src, bounceable = false),
-                    dest = MsgAddressInt.toString(inIntMsgInfo.dest, bounceable = false),
+                TonTransfer(
+                    transactionHash = transactionHash,
+                    src = TonAddress(inIntMsgInfo.src),
+                    dest = TonAddress(inIntMsgInfo.dest),
                     amount = transferAmount.toString(10),
                 )
             )
@@ -136,15 +137,15 @@ class TonApiAdnl(val addrStd: AddrStd) {
             transactionType = TransactionType.Unknown
         }
 
-        return TonTransaction(
-            hash = info.id.hash.toHex(),
+        return TonTransactionWithTransfers(
+            hash = transactionHash,
             lt = info.id.lt,
             timestamp = info.transaction.value.now.toLong(),
             amount = amount?.toString(10),
             memo = memo,
             fee = fee.toString(10),
             type = transactionType,
-            transfersJson = Json.encodeToString(transfers)
+            transfers = transfers
         )
     }
 

@@ -1,6 +1,9 @@
 package io.horizontalsystems.tonkit
 
-class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
+class TransactionStorage(
+    private val transactionQuery: TonTransactionQueries,
+    private val transferQuery: TonTransferQueries
+) {
 
     fun getLatestTransaction(): TonTransaction? {
         return transactionQuery.getLatest().executeAsOneOrNull()
@@ -10,7 +13,34 @@ class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
         return transactionQuery.getEarliest().executeAsOneOrNull()
     }
 
-    fun getTransactions(
+    fun getTransactionsWithTransfers(
+        fromTransactionHash: String?,
+        type: TransactionType?,
+        limit: Long,
+    ): List<TonTransactionWithTransfers> {
+        val transactions = getTransactions(fromTransactionHash, type, limit)
+        val transactionHashes = transactions.map { it.hash }
+        val transfers = getTransfers(transactionHashes).groupBy { it.transactionHash }
+
+        return transactions.map {
+            TonTransactionWithTransfers(
+                hash = it.hash,
+                lt = it.lt,
+                timestamp = it.timestamp,
+                amount = it.amount,
+                fee = it.fee,
+                type = it.type,
+                transfers = transfers[it.hash] ?: listOf(),
+                memo = it.memo,
+            )
+        }
+    }
+
+    private fun getTransfers(transactionHashes: List<String>): List<TonTransfer> {
+        return transferQuery.getByTransactionHash(transactionHashes).executeAsList()
+    }
+
+    private fun getTransactions(
         fromTransactionHash: String?,
         type: TransactionType?,
         limit: Long,
@@ -53,7 +83,7 @@ class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
         }
     }
 
-    fun add(transactions: List<TonTransaction>) {
+    fun add(transactions: List<TonTransactionWithTransfers>) {
         transactionQuery.transaction {
             transactions.forEach { transaction ->
                 transactionQuery.insert(
@@ -63,9 +93,20 @@ class TransactionStorage(private val transactionQuery: TonTransactionQueries) {
                     transaction.amount,
                     transaction.fee,
                     transaction.type,
-                    transaction.transfersJson,
+                    "",
                     transaction.memo
                 )
+
+                transferQuery.deleteAllByTransactionHash(transaction.hash)
+
+                transaction.transfers.forEach {
+                    transferQuery.insert(
+                        it.transactionHash,
+                        it.src,
+                        it.dest,
+                        it.amount,
+                    )
+                }
             }
         }
     }
