@@ -10,7 +10,7 @@ import io.horizontalsystems.tonkit.ConnectionManager
 import io.horizontalsystems.tonkit.DriverFactory
 import io.horizontalsystems.tonkit.SyncState
 import io.horizontalsystems.tonkit.TonKitFactory
-import io.horizontalsystems.tonkit.TonTransaction
+import io.horizontalsystems.tonkit.TonTransactionWithTransfers
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
 import java.math.BigDecimal
@@ -29,7 +29,7 @@ class MainViewModel(application: Application) : AndroidViewModel(application) {
     private var balance = tonKit.balance
     private var syncState = tonKit.balanceSyncStateFlow.value
     private var txSyncState = tonKit.transactionsSyncStateFlow.value
-    private var transactionList: List<TonTransaction>? = null
+    private var transactionList: List<TonTransactionWithTransfers>? = null
 
     var uiState by mutableStateOf(
         MainUiState(
@@ -179,7 +179,7 @@ data class MainUiState(
     val balance: String?,
     val syncState: SyncState,
     val txSyncState: SyncState,
-    val transactionList: List<TonTransaction>?,
+    val transactionList: List<TonTransactionWithTransfers>?,
 )
 
 fun SyncState.toStr() = when (this) {

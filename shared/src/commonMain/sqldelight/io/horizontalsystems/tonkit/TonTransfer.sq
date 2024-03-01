@@ -1,0 +1,18 @@
+import io.horizontalsystems.tonkit.TonAddress;
+
+CREATE TABLE TonTransfer (
+    transactionHash TEXT NOT NULL,
+    src TEXT AS TonAddress NOT NULL,
+    dest TEXT AS TonAddress NOT NULL,
+    amount TEXT NOT NULL
+);
+
+insert:
+INSERT INTO TonTransfer(transactionHash, src, dest, amount)
+VALUES (?, ?, ?, ?);
+
+deleteAllByTransactionHash:
+DELETE FROM TonTransfer WHERE transactionHash = ?;
+
+getByTransactionHash:
+SELECT * FROM TonTransfer WHERE transactionHash IN ?;
