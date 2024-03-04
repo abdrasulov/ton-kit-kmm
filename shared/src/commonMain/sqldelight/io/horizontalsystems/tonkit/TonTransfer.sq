@@ -16,3 +16,6 @@ DELETE FROM TonTransfer WHERE transactionHash = ?;
 
 getByTransactionHash:
 SELECT * FROM TonTransfer WHERE transactionHash IN ?;
+
+getTransactionHashesByAddress:
+SELECT DISTINCT transactionHash FROM TonTransfer WHERE src = :address OR dest = :address;
