@@ -16,9 +16,10 @@ class TransactionStorage(
     fun getTransactionsWithTransfers(
         fromTransactionHash: String?,
         type: TransactionType?,
+        address: String?,
         limit: Long,
     ): List<TonTransactionWithTransfers> {
-        val transactions = getTransactions(fromTransactionHash, type, limit)
+        val transactions = getTransactions(fromTransactionHash, type, address, limit)
         val transactionHashes = transactions.map { it.hash }
         val transfers = getTransfers(transactionHashes).groupBy { it.transactionHash }
 
@@ -43,44 +44,39 @@ class TransactionStorage(
     private fun getTransactions(
         fromTransactionHash: String?,
         type: TransactionType?,
-        limit: Long,
-    ) = when (type) {
-        null -> getTransactions(fromTransactionHash, limit)
-        else -> getTransactionsByType(fromTransactionHash, type, limit)
-    }
-
-    private fun getTransactions(
-        fromTransactionHash: String?,
+        address: String?,
         limit: Long,
     ): List<TonTransaction> {
-        if (fromTransactionHash == null) {
-            return transactionQuery.getAll(limit).executeAsList()
-        } else {
-            val fromTransaction = transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
-            return transactionQuery.getEarlierThan(
-                fromTransaction.timestamp,
-                fromTransaction.lt,
-                limit
-            ).executeAsList()
+        val fromTransaction = fromTransactionHash?.let {
+            transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return emptyList()
         }
+
+        return queryTransactions(
+            type = type,
+            timestamp = fromTransaction?.timestamp,
+            lt = fromTransaction?.lt,
+            limit = limit,
+        )
     }
 
-    private fun getTransactionsByType(
-        fromTransactionHash: String?,
-        type: TransactionType,
-        limit: Long,
+    private fun queryTransactions(
+        hashes: List<String> = listOf(),
+        type: TransactionType? = null,
+        timestamp: Long? = null,
+        lt: Long? = null,
+        limit: Long
     ): List<TonTransaction> {
-        if (fromTransactionHash == null) {
-            return transactionQuery.getAllByType(type = type, limit = limit).executeAsList()
-        } else {
-            val fromTransaction = transactionQuery.getByHash(fromTransactionHash).executeAsOneOrNull() ?: return listOf()
-            return transactionQuery.getEarlierThanByType(
-                timestamp = fromTransaction.timestamp,
-                lt = fromTransaction.lt,
-                type = type,
-                limit = limit
-            ).executeAsList()
-        }
+        val skipEarlierThan = timestamp == null || lt == null
+
+        return transactionQuery.getByQuery(
+            skipEarlierThan = skipEarlierThan,
+            timestampEarlierThan = timestamp ?: Long.MAX_VALUE,
+            ltEarlierThan = lt ?: Long.MAX_VALUE,
+            skipHash = hashes.isEmpty(),
+            hashes = hashes,
+            type = type,
+            limit = limit
+        ).executeAsList()
     }
 
     fun add(transactions: List<TonTransactionWithTransfers>) {

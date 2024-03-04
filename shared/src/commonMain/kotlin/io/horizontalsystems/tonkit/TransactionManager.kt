@@ -80,9 +80,10 @@ class TransactionManager(
     suspend fun transactions(
         fromTransactionHash: String?,
         type: TransactionType?,
+        address: String?,
         limit: Long
     ): List<TonTransactionWithTransfers> {
-        return storage.getTransactionsWithTransfers(fromTransactionHash, type, limit)
+        return storage.getTransactionsWithTransfers(fromTransactionHash, type, address, limit)
     }
 
 }
