@@ -1,2 +1,11 @@
+import io.horizontalsystems.tonkit.TonAddress;
+
 DELETE FROM TonTransaction;
 ALTER TABLE TonTransaction DROP COLUMN transfersJson;
+
+CREATE TABLE TonTransfer (
+    transactionHash TEXT NOT NULL,
+    src TEXT AS TonAddress NOT NULL,
+    dest TEXT AS TonAddress NOT NULL,
+    amount TEXT NOT NULL
+);
