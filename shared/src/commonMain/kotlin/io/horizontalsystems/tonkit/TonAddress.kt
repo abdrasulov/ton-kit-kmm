@@ -11,7 +11,7 @@ class TonAddress(private val address: MsgAddressInt) {
     fun toRaw() = MsgAddressInt.toString(address, userFriendly = false)
 
     companion object {
-        fun parse(addrStr: String) = MsgAddressInt.parse(addrStr)
+        fun parse(addrStr: String) = TonAddress(MsgAddressInt.parse(addrStr))
     }
 
 }

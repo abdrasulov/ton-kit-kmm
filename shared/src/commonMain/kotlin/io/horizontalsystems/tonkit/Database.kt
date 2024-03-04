@@ -19,7 +19,7 @@ class Database(databaseDriverFactory: DriverFactory, databaseName: String) {
 
 class TonAddressColumnAdapter : ColumnAdapter<TonAddress, String> {
     override fun decode(databaseValue: String): TonAddress {
-        return TonAddress(TonAddress.parse(databaseValue))
+        return TonAddress.parse(databaseValue)
     }
 
     override fun encode(value: TonAddress): String {

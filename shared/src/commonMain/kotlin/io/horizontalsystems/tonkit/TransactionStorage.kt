@@ -55,18 +55,27 @@ class TransactionStorage(
             type = type,
             timestamp = fromTransaction?.timestamp,
             lt = fromTransaction?.lt,
+            address = address,
             limit = limit,
         )
     }
 
     private fun queryTransactions(
-        hashes: List<String> = listOf(),
         type: TransactionType? = null,
         timestamp: Long? = null,
         lt: Long? = null,
+        address: String? = null,
         limit: Long
     ): List<TonTransaction> {
         val skipEarlierThan = timestamp == null || lt == null
+
+        val hashes = when {
+            address != null -> transferQuery
+                .getTransactionHashesByAddress(TonAddress.parse(address))
+                .executeAsList()
+
+            else -> listOf()
+        }
 
         return transactionQuery.getByQuery(
             skipEarlierThan = skipEarlierThan,
