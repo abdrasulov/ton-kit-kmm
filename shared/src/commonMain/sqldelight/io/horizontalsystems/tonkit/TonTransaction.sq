@@ -20,17 +20,12 @@ SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, 1;
 getEarliest:
 SELECT * FROM TonTransaction ORDER BY timestamp ASC, lt ASC LIMIT 0, 1;
 
-getAll:
-SELECT * FROM TonTransaction ORDER BY timestamp DESC, lt DESC LIMIT 0, :limit;
-
-getAllByType:
-SELECT * FROM TonTransaction WHERE type = :type ORDER BY timestamp DESC, lt DESC LIMIT 0, :limit;
+getByQuery:
+SELECT * FROM TonTransaction
+WHERE (:skipEarlierThan OR (timestamp < :timestampEarlierThan OR (timestamp = :timestampEarlierThan AND lt < :ltEarlierThan)))
+AND (:skipHash OR hash IN :hashes)
+AND (:type IS NULL OR type = :type)
+ORDER BY timestamp DESC, lt DESC LIMIT 0, :limit;
 
 getByHash:
 SELECT * FROM TonTransaction WHERE hash = :hash;
-
-getEarlierThan:
-SELECT * FROM TonTransaction WHERE timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
-
-getEarlierThanByType:
-SELECT * FROM TonTransaction WHERE type = :type AND timestamp < :timestamp OR (timestamp = :timestamp AND lt < :lt) ORDER BY timestamp DESC LIMIT 0, :limit;
