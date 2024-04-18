@@ -42,5 +42,5 @@ fun TonKit.balanceSyncStatePublisher(onEach: (SyncState) -> Unit, onCompletion: 
 fun TonKit.transactionsSyncStatePublisher(onEach: (SyncState) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =
     transactionsSyncStateFlow.collect(onEach, onCompletion)
 
-fun TonKit.newTransactionsPublisher(onEach: (List<TonTransaction>) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =
+fun TonKit.newTransactionsPublisher(onEach: (List<TonTransactionWithTransfers>) -> Unit, onCompletion: (Throwable?) -> Unit): Cancellable =
     newTransactionsFlow.collect(onEach, onCompletion)

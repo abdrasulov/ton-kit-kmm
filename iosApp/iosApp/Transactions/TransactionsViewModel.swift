@@ -21,7 +21,7 @@ class TransactionsViewModel: ObservableObject {
 
     private func fetch() {
         Task { [tonKit] in
-            let tonTransactions = try await tonKit.transactions(fromTransactionHash: nil, type: nil, limit: 100)
+            let tonTransactions = try await tonKit.transactions(fromTransactionHash: nil, type: nil, address: nil, limit: 100)
 
             DispatchQueue.main.async { [weak self] in
                 self?.handle(tonTransactions: tonTransactions)
@@ -29,7 +29,7 @@ class TransactionsViewModel: ObservableObject {
         }
     }
 
-    private func handle(tonTransactions: [TonTransaction]) {
+    private func handle(tonTransactions: [TonTransactionWithTransfers]) {
         let transactions = tonTransactions.map { tx in
             Transaction(
                 hash: tx.hash,
@@ -40,8 +40,8 @@ class TransactionsViewModel: ObservableObject {
                 type: tx.type.description(),
                 transfers: tx.transfers.map { kitTransfer in
                     Transaction.Transfer(
-                        src: kitTransfer.src,
-                        dest: kitTransfer.dest,
+                        src: kitTransfer.src.getNonBounceable(),
+                        dest: kitTransfer.dest.getNonBounceable(),
                         amount: Singleton.amount(kitAmount: kitTransfer.amount)
                     )
                 }
