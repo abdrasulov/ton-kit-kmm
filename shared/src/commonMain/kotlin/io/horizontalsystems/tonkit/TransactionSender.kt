@@ -29,8 +29,12 @@ class TransactionSender(
     }
 
     suspend fun estimateFee(): String {
-        val fullAccountState = adnl.getFullAccountStateOrNull()
-        val accountInfo = fullAccountState?.account?.value as? AccountInfo
+        val accountInfo = try {
+            val fullAccountState = adnl.getFullAccountState()
+            fullAccountState.account.value as? AccountInfo
+        } catch (e: Throwable) {
+            null
+        }
 
         val fee = when {
             accountInfo == null -> 0

@@ -29,8 +29,12 @@ class Syncer(
     private var syncerJob: Job? = null
     private var balanceSyncerJob: Job? = null
     private var transactionSyncerJob: Job? = null
+    private var started = false
 
     fun start() {
+        if (started) return
+        started = true
+
         coroutineScope.launch {
             connectionManager.isConnectedFlow.collect { isConnected ->
                 if (isConnected) {
@@ -43,7 +47,7 @@ class Syncer(
         connectionManager.start()
     }
 
-    suspend fun cancelSyncer(reason: Throwable) {
+    private suspend fun cancelSyncer(reason: Throwable) {
         syncerJob?.cancelAndJoin()
         balanceSyncerJob?.cancelAndJoin()
         transactionSyncerJob?.cancelAndJoin()
@@ -56,7 +60,8 @@ class Syncer(
         }
     }
 
-    fun runSyncer() {
+    private suspend fun runSyncer() {
+        syncerJob?.cancelAndJoin()
         syncerJob = coroutineScope.launch {
             // TON generates a new block on each shardchain and the masterchain approximately every 5 seconds
             tickerFlow(5.seconds).collect {
@@ -88,6 +93,8 @@ class Syncer(
     }
 
     fun stop() {
+        started = false
+
         connectionManager.stop()
         // to use coroutineScope afterwards we should cancel only its children
         coroutineScope.coroutineContext.cancelChildren()
